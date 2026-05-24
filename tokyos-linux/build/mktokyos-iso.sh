@@ -179,12 +179,6 @@ install_packages() {
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         python3 python3-pip python3-venv
 
-    # NVIDIA drivers (tentativa — pode falhar em chroot sem /proc)
-    chroot "$ROOTFS_DIR" bash -c \
-        "apt-get install -y -qq nvidia-driver firmware-misc-nonfree nvidia-settings 2>/dev/null; \
-         apt-get install -y -f -qq" \
-        || log "AVISO: NVIDIA driver nao instalado (chroot sem /proc)"
-
     # Limpeza
     chroot "$ROOTFS_DIR" apt-get clean
     rm -rf "$ROOTFS_DIR/var/lib/apt/lists"/*

@@ -1,0 +1,30 @@
+#!/bin/bash
+# Instala drivers NVIDIA no primeiro boot com GPU real
+set -e
+
+LOG="/var/log/tokyos-setup-nvidia.log"
+
+log() { echo "[$(date +%H:%M:%S)] $*" | tee -a "$LOG"; }
+
+# Detecta GPU NVIDIA
+if ! lspci -nn | grep -qi 'nvidia.*vga'; then
+    log "Nenhuma GPU NVIDIA detectada. Pulando."
+    exit 0
+fi
+
+log "GPU NVIDIA detectada. Instalando drivers..."
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -qq
+apt-get install -y -qq nvidia-driver firmware-misc-nonfree nvidia-settings || {
+    log "Falha na instalacao. Tentando fix-broken..."
+    apt-get install -y -f -qq
+    exit 1
+}
+
+log "Drivers NVIDIA instalados. Reconfigure X11..."
+if command -v nvidia-xconfig &>/dev/null; then
+    nvidia-xconfig --allow-empty-initial-configuration --cool-bits=28 2>/dev/null || true
+fi
+
+log "Setup NVIDIA concluido. Reinicie para ativar."

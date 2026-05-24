@@ -1,12 +1,12 @@
 #!/bin/sh
-# tokios-kiosk — Gerencia o navegador kiosk TokiOS (Wayland + X11)
-# Uso: tokios-kiosk {start|stop|restart|status}
+# tokyos-kiosk — Gerencia o navegador kiosk TokyOS (Wayland + X11)
+# Uso: tokyos-kiosk {start|stop|restart|status}
 
 set -e
 
-PIDFILE=/run/tokios/kiosk.pid
+PIDFILE=/run/tokyos/kiosk.pid
 LOGFILE=/var/log/kiosk.log
-CONFIG=/etc/tokios/tokios.conf
+CONFIG=/etc/tokyos/tokyos.conf
 DASHBOARD_URL="${DASHBOARD_URL:-http://127.0.0.1:3001}"
 
 [ -f "$CONFIG" ] && . "$CONFIG"
@@ -59,16 +59,16 @@ start_wayland() {
     fi
 
     echo "wayland: iniciando weston..."
-    weston --tty=1 --idle-time=0 --backend=drm-backend.so \
-        --socket=wayland-tokios \
+    weston --tty=1 --idle-time=0 --backend=drm-backend \
+        --socket=wayland-tokyos \
         >> "$LOGFILE" 2>&1 &
-    echo $! > /run/tokios/weston.pid
+    echo $! > /run/tokyos/weston.pid
 
     # Aguarda o socket wayland
     for i in $(seq 1 10); do
-        if [ -S "$XDG_RUNTIME_DIR/wayland-tokios" ] 2>/dev/null; then
-            export WAYLAND_DISPLAY="wayland-tokios"
-            echo "wayland: weston pronto (socket wayland-tokios)"
+        if [ -S "$XDG_RUNTIME_DIR/wayland-tokyos" ] 2>/dev/null; then
+            export WAYLAND_DISPLAY="wayland-tokyos"
+            echo "wayland: weston pronto (socket wayland-tokyos)"
             return 0
         fi
         sleep 1
@@ -93,8 +93,8 @@ start_x11() {
     fi
 
     echo "x11: iniciando Xorg..."
-    Xorg :0 -logfile /var/log/xorg.log -config xorg-kiosk.conf vt1 &
-    echo $! > /run/tokios/xorg.pid
+    Xorg :0 -logfile /var/log/xorg.log -config /etc/X11/xorg-kiosk.conf vt1 &
+    echo $! > /run/tokyos/xorg.pid
 
     for i in $(seq 1 10); do
         if [ -e /tmp/.X11-unix/X0 ]; then
@@ -147,7 +147,7 @@ start() {
         exit 1
     fi
 
-    mkdir -p /run/tokios
+    mkdir -p /run/tokyos
 
     local display_type
     display_type=$(detect_display)
@@ -167,9 +167,9 @@ start() {
 
 stop() {
     pkill chromium 2>/dev/null || true
-    [ -f /run/tokios/weston.pid ] && kill $(cat /run/tokios/weston.pid) 2>/dev/null || true
-    [ -f /run/tokios/xorg.pid ] && kill $(cat /run/tokios/xorg.pid) 2>/dev/null || true
-    rm -f "$PIDFILE" /run/tokios/weston.pid /run/tokios/xorg.pid
+    [ -f /run/tokyos/weston.pid ] && kill $(cat /run/tokyos/weston.pid) 2>/dev/null || true
+    [ -f /run/tokyos/xorg.pid ] && kill $(cat /run/tokyos/xorg.pid) 2>/dev/null || true
+    rm -f "$PIDFILE" /run/tokyos/weston.pid /run/tokyos/xorg.pid
     echo "kiosk parado"
 }
 

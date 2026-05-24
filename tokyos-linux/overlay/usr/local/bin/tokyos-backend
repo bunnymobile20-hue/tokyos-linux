@@ -1,14 +1,14 @@
 #!/bin/sh
-# tokios-backend — Controla o backend Node.js TokiOS
-# Uso: tokios-backend {start|stop|restart|status}
+# tokyos-backend — Controla o backend Node.js TokyOS
+# Uso: tokyos-backend {start|stop|restart|status}
 
 set -e
 
-BACKEND_DIR=/opt/tokios/backend
-PIDFILE=/run/tokios/backend.pid
+BACKEND_DIR=/opt/tokyos/backend
+PIDFILE=/run/tokyos/backend.pid
 LOGFILE=/var/log/backend.log
 DATA_DIR=/mnt/data
-AUTHTOKEN_FILE="$DATA_DIR/opt/tokios/AUTHTOKEN"
+AUTHTOKEN_FILE="$DATA_DIR/opt/tokyos/AUTHTOKEN"
 
 export NODE_ENV=production
 export PORT=3001
@@ -20,7 +20,7 @@ start() {
         return 0
     fi
 
-    mkdir -p /run/tokios
+    mkdir -p /run/tokyos
     cd "$BACKEND_DIR"
 
     if [ ! -f dist/server.js ]; then

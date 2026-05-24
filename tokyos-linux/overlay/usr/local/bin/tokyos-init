@@ -17,6 +17,15 @@ log() {
     echo "[$(date +%H:%M:%S)] $PROGNAME: $*" >> "$LOGFILE"
 }
 
+# Reaper de zumbis (PID 1 precisa coletar SIGCHLD)
+reap_zombies() {
+    while true; do
+        wait 2>/dev/null
+        break
+    done
+}
+trap 'reap_zombies' CHLD
+
 die() {
     log "FATAL: $*"
     echo "$*" > /run/tokyos/fatal
@@ -29,17 +38,17 @@ die() {
 # FASE 0 — Preparação inicial
 # ============================================================
 setup_early() {
-    mkdir -p /run/tokyos /run/network
-
-    # Monta sistema de arquivos essenciais
+    # Monta sistemas de arquivos PRIMEIRO
     mount -t proc none /proc 2>/dev/null || true
     mount -t sysfs none /sys 2>/dev/null || true
     mount -t tmpfs none /run 2>/dev/null || true
 
-    # Populate /dev via devtmpfs
     mount -t devtmpfs none /dev 2>/dev/null || true
     mkdir -p /dev/pts
     mount -t devpts none /dev/pts 2>/dev/null || true
+
+    # Só depois cria diretórios no tmpfs
+    mkdir -p /run/tokyos /run/network
 
     log "Fase 0: sistemas de arquivos montados"
 }
@@ -94,8 +103,8 @@ setup_network() {
     fi
 
     # Fallback: IP estático se configurado
-    if [ -f /etc/tokios/network.conf ]; then
-        . /etc/tokios/network.conf
+    if [ -f /etc/tokyos/network.conf ]; then
+        . /etc/tokyos/network.conf
         if [ -n "$STATIC_IP" ]; then
             ifconfig eth0 "$STATIC_IP" netmask "$NETMASK" up 2>/dev/null || true
             route add default gw "$GATEWAY" 2>/dev/null || true
@@ -142,7 +151,7 @@ setup_sound() {
 # FASE 5 — Sobe backend Node.js
 # ============================================================
 start_backend() {
-    log "Fase 4: iniciando backend TokiOS..."
+    log "Fase 4: iniciando backend TokyOS..."
 
     BACKEND_DIR=/opt/tokyos/backend
     BACKEND_LOG="$DATA_DIR/var/log/backend.log"
@@ -190,10 +199,10 @@ start_kiosk() {
         return 1
     fi
 
-    # Delega para o script tokios-kiosk (que faz auto-detect Wayland/X11)
-    if [ -f /usr/local/bin/tokios-kiosk ]; then
-        /usr/local/bin/tokios-kiosk start >> "$DATA_DIR/var/log/kiosk.log" 2>&1
-        log "Kiosk iniciado via tokios-kiosk"
+    # Delega para o script tokyos-kiosk (que faz auto-detect Wayland/X11)
+    if [ -f /usr/local/bin/tokyos-kiosk ]; then
+        /usr/local/bin/tokyos-kiosk start >> "$DATA_DIR/var/log/kiosk.log" 2>&1
+        log "Kiosk iniciado via tokyos-kiosk"
     else
         log "AVISO: tokyos-kiosk não encontrado"
     fi

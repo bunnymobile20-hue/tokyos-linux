@@ -1,12 +1,12 @@
 #!/bin/sh
-# tokios-update — Sistema de atualização A/B do TokiOS Linux
-# Uso: tokios-update check   (verifica se há atualização)
-#       tokios-update apply  (aplica atualização e reinicia)
-#       tokios-update rollback (volta para partição anterior)
+# tokyos-update — Sistema de atualização A/B do TokyOS Linux
+# Uso: tokyos-update check   (verifica se há atualização)
+#       tokyos-update apply  (aplica atualização e reinicia)
+#       tokyos-update rollback (volta para partição anterior)
 
 set -e
 
-CONFIG=/etc/tokios/tokios.conf
+CONFIG=/etc/tokyos/tokyos.conf
 DATA_DIR=/mnt/data
 UPDATE_SOURCE=""
 UPDATE_VERSION=""
@@ -39,8 +39,8 @@ check() {
     echo "Partição atual: $CURRENT_PART ($ROOT_DEV)"
 
     # Lê versão atual
-    if [ -f /etc/tokios/version ]; then
-        CURRENT_VERSION=$(cat /etc/tokios/version)
+    if [ -f /etc/tokyos/version ]; then
+        CURRENT_VERSION=$(cat /etc/tokyos/version)
         echo "Versão atual: $CURRENT_VERSION"
     fi
 }
@@ -54,7 +54,7 @@ apply() {
         exit 1
     fi
 
-    UPDATE_FILE="/tmp/tokios-update.squashfs"
+    UPDATE_FILE="/tmp/tokyos-update.squashfs"
     UPDATE_VERSION_FILE="/tmp/UPDATE_VERSION"
 
     echo "Baixando atualização de $UPDATE_URL ..."
@@ -92,7 +92,7 @@ apply() {
     echo "Mudando boot para partição standby..."
     # Seta flag de boot via kernel cmdline para próxima partição
     NEXT_PART="${CURRENT_PART}"_NEXT="standby"
-    touch /mnt/data/opt/tokios/.next-boot-standby
+    touch /mnt/data/opt/tokyos/.next-boot-standby
 
     echo "Atualização aplicada. Reiniciando em 3 segundos..."
     sleep 3
@@ -103,11 +103,11 @@ rollback() {
     detect_partitions
     if [ "$CURRENT_PART" = "A" ] && [ -n "$PART_B" ]; then
         echo "Forçando boot pela partição B..."
-        touch /mnt/data/opt/tokios/.next-boot-standby
+        touch /mnt/data/opt/tokyos/.next-boot-standby
         reboot -f
     elif [ "$CURRENT_PART" = "B" ] && [ -n "$PART_A" ]; then
         echo "Forçando boot pela partição A..."
-        rm -f /mnt/data/opt/tokios/.next-boot-standby
+        rm -f /mnt/data/opt/tokyos/.next-boot-standby
         reboot -f
     else
         echo "Rollback não disponível (apenas uma partição)"

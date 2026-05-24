@@ -1,15 +1,15 @@
 #!/bin/sh
-# tokios-config — Configuração de fábrica / first-boot do TokiOS Linux
+# tokyos-config — Configuração de fábrica / first-boot do TokyOS Linux
 # Executado na primeira inicialização ou quando resetado
 
 set -e
 
 DATA_DIR=/mnt/data
-CONFIG_DIR="$DATA_DIR/etc/tokios"
-CONFIG_FILE="$CONFIG_DIR/tokios.conf"
+CONFIG_DIR="$DATA_DIR/etc/tokyos"
+CONFIG_FILE="$CONFIG_DIR/tokyos.conf"
 
 log() {
-    echo "[tokios-config] $*" >&2
+    echo "[tokyos-config] $*" >&2
 }
 
 # ============================================================
@@ -30,16 +30,16 @@ setup_identity() {
 }
 
 # ============================================================
-# Configuração padrão tokios.conf
+# Configuração padrão tokyos.conf
 # ============================================================
 setup_config() {
     if [ -f "$CONFIG_FILE" ]; then
-        log "tokios.conf já existe, pulando"
+        log "tokyos.conf já existe, pulando"
         return
     fi
 
     cat > "$CONFIG_FILE" << 'EOF'
-# TokiOS Linux — Configuração Principal
+# TokyOS Linux — Configuração Principal
 
 # Dashboard URL (pode ser localhost ou servidor remoto)
 DASHBOARD_URL="http://127.0.0.1:5173"
@@ -54,21 +54,21 @@ BACKEND_PORT=3001
 # DNS="8.8.8.8"
 
 # URL de atualização (opcional)
-# UPDATE_URL="https://updates.tokios.dev/latest.squashfs"
+# UPDATE_URL="https://updates.tokyos.dev/latest.squashfs"
 
 # Nome do dispositivo (aparece no dashboard)
-DEVICE_NAME="TokiOS Terminal"
+DEVICE_NAME="TokyOS Terminal"
 EOF
 
     chmod 644 "$CONFIG_FILE"
-    log "tokios.conf criado"
+    log "tokyos.conf criado"
 }
 
 # ============================================================
 # Seed do banco de dados Hermes (se vazio)
 # ============================================================
 setup_hermes() {
-    HERMES_DB="$DATA_DIR/opt/tokios/data/hermes.db"
+    HERMES_DB="$DATA_DIR/opt/tokyos/data/hermes.db"
     if [ -f "$HERMES_DB" ]; then
         log "Hermes DB já existe, pulando"
         return
@@ -82,7 +82,7 @@ setup_hermes() {
 # Configuração do dashboard (endereço do backend)
 # ============================================================
 setup_dashboard() {
-    DASHBOARD_CONFIG="$DATA_DIR/opt/tokios/data/env.json"
+    DASHBOARD_CONFIG="$DATA_DIR/opt/tokyos/data/env.json"
     if [ -f "$DASHBOARD_CONFIG" ]; then
         log "Dashboard config já existe, pulando"
         return
@@ -111,4 +111,4 @@ setup_hermes
 setup_dashboard
 
 log "Configuração de fábrica concluída"
-touch "$DATA_DIR/opt/tokios/.configured"
+touch "$DATA_DIR/opt/tokyos/.configured"

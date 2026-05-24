@@ -97,6 +97,10 @@ bootstrap_rootfs() {
 install_packages() {
     log "Instalando pacotes no chroot..."
 
+    # Habilita repositorios non-free + non-free-firmware
+    sed -i 's/main$/main contrib non-free non-free-firmware/' \
+        "$ROOTFS_DIR/etc/apt/sources.list" 2>/dev/null || true
+
     chroot "$ROOTFS_DIR" apt-get update -qq
 
     # Kernel e firmware

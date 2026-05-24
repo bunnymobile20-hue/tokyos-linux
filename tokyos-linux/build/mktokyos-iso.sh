@@ -101,27 +101,40 @@ install_packages() {
     sed -i 's/main$/main contrib non-free non-free-firmware/' \
         "$ROOTFS_DIR/etc/apt/sources.list" 2>/dev/null || true
 
+    # Configura apt para evitar dialogos interativos
+    cat > "$ROOTFS_DIR/etc/apt/apt.conf.d/99tokyos" << 'APTCONF'
+APT::Install-Recommends "false";
+APT::Get::Assume-Yes "true";
+APT::Get::force-yes "true";
+DPkg::Options {"--force-confold";"--force-confdef"};
+DPkg::Lock::Timeout "120";
+Quiet "2";
+APTCONF
+
     chroot "$ROOTFS_DIR" apt-get update -qq
 
-    # Kernel e firmware
+    # Kernel e firmware (com fallback)
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
-        linux-image-amd64 firmware-linux-free firmware-linux-nonfree
+        linux-image-amd64 firmware-linux-free \
+        || true
+    chroot "$ROOTFS_DIR" apt-get install -y -qq \
+        firmware-linux-nonfree \
+        || log "AVISO: firmware-linux-nonfree indisponivel"
 
-    # Live boot (findiso, toram, etc.)
+    # Live boot
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         live-boot live-boot-initramfs-tools
 
     # Ferramentas de sistema
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         busybox squashfs-tools util-linux e2fsprogs dosfstools \
-        curl wget git unzip xz-utils bzip2 \
-        dhcpcd5 isc-dhcp-client
+        curl wget git unzip xz-utils bzip2 isc-dhcp-client
 
     # Wayland + display
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         weston libgl1-mesa-dri mesa-utils
 
-    # X11 (fallback para GPUs/drivers sem Wayland)
+    # X11 (fallback)
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         xserver-xorg-core xserver-xorg xinit x11-xserver-utils \
         xfonts-base xfonts-utils
@@ -131,56 +144,58 @@ install_packages() {
         pipewire pipewire-pulse pipewire-alsa wireplumber \
         alsa-utils pavucontrol
 
-    # Chromium para kiosk
+    # Chromium
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         chromium chromium-l10n
 
-    # Rustdesk (remoto/assistencia)
-    chroot "$ROOTFS_DIR" bash -c \
-        "curl -sL https://github.com/rustdesk/rustdesk/releases/download/1.3.8/rustdesk-1.3.8-x86_64.deb -o /tmp/rustdesk.deb && \
-         dpkg -i /tmp/rustdesk.deb 2>/dev/null || apt-get install -y -f -qq" \
-        || log "AVISO: Rustdesk falhou ao instalar"
-
-    # Node.js v20 (via NodeSource)
-    chroot "$ROOTFS_DIR" bash -c \
-        "curl -fsSL https://deb.nodesource.com/setup_20.x | bash -"
-    chroot "$ROOTFS_DIR" apt-get install -y -qq nodejs
-
-    # Google Antigravity — IDE (via APT repo)
-    chroot "$ROOTFS_DIR" bash -c \
-        "mkdir -p /etc/apt/keyrings && \
-         curl -fsSL https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg | \
-         gpg --dearmor -o /etc/apt/keyrings/antigravity-repo-key.gpg && \
-         echo 'deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main' > /etc/apt/sources.list.d/antigravity.list && \
-         apt-get update -qq && \
-         apt-get install -y -qq antigravity" \
-        || log "AVISO: Google Antigravity IDE falhou ao instalar via APT"
-
-    # Google Antigravity — CLI
-    chroot "$ROOTFS_DIR" bash -c \
-        "curl -fsSL https://antigravity.google/cli/install.sh | bash" \
-        || log "AVISO: Antigravity CLI falhou ao instalar"
-
-    # Google Antigravity — 2.0 Desktop App (tarball)
-    chroot "$ROOTFS_DIR" bash -c \
-        "mkdir -p /opt/antigravity-2.0 && \
-         ANTIGRAVITY_URL=\$(curl -sL https://antigravity.google/download/linux | grep -oP 'https://[^\"]+\\.tar\\.gz' | head -1) && \
-         if [ -n \"\$ANTIGRAVITY_URL\" ]; then \
-           curl -sL \"\$ANTIGRAVITY_URL\" -o /tmp/antigravity-2.0.tar.gz && \
-           tar xzf /tmp/antigravity-2.0.tar.gz -C /opt/antigravity-2.0 --strip-components=1 && \
-           ln -sf /opt/antigravity-2.0/antigravity /usr/local/bin/antigravity-2.0 && \
-           rm -f /tmp/antigravity-2.0.tar.gz; \
-         else \
-           echo 'AVISO: Antigravity 2.0 tarball URL nao encontrada'; \
-         fi" \
-        || log "AVISO: Antigravity 2.0 tarball falhou ao baixar/extrair"
-
-    # Python
+    # Python (antes do Node pra isolar batch APT)
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         python3 python3-pip python3-venv
 
+    # Rustdesk
+    chroot "$ROOTFS_DIR" bash -c \
+        "curl -sL https://github.com/rustdesk/rustdesk/releases/download/1.3.8/rustdesk-1.3.8-x86_64.deb -o /tmp/rustdesk.deb 2>/dev/null && \
+         dpkg -i /tmp/rustdesk.deb 2>/dev/null || apt-get install -y -f -qq" \
+        || log "AVISO: Rustdesk falhou"
+
+    # Node.js v20
+    chroot "$ROOTFS_DIR" bash -c \
+        "curl -fsSL https://deb.nodesource.com/setup_20.x | bash -" \
+        || log "AVISO: NodeSource setup falhou"
+    chroot "$ROOTFS_DIR" apt-get install -y -qq nodejs
+
+    # Google Antigravity — IDE
+    chroot "$ROOTFS_DIR" bash -c \
+        "mkdir -p /etc/apt/keyrings && \
+         curl -fsSL https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg 2>/dev/null | \
+         gpg --dearmor -o /etc/apt/keyrings/antigravity-repo-key.gpg 2>/dev/null && \
+         echo 'deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main' > /etc/apt/sources.list.d/antigravity.list && \
+         apt-get update -qq 2>/dev/null && \
+         apt-get install -y -qq antigravity 2>/dev/null" \
+        || log "AVISO: Antigravity IDE falhou"
+
+    # Google Antigravity — CLI
+    chroot "$ROOTFS_DIR" bash -c \
+        "curl -fsSL https://antigravity.google/cli/install.sh 2>/dev/null | bash 2>/dev/null" \
+        || log "AVISO: Antigravity CLI falhou"
+
+    # Google Antigravity — 2.0 tarball
+    chroot "$ROOTFS_DIR" bash -c \
+        "mkdir -p /opt/antigravity-2.0 && \
+         URL=\$(curl -sL https://antigravity.google/download/linux 2>/dev/null | grep -oP 'https://[^\"]+\\.tar\\.gz' | head -1) && \
+         if [ -n \"\$URL\" ]; then \
+           curl -sL \"\$URL\" -o /tmp/ag2.tar.gz 2>/dev/null && \
+           tar xzf /tmp/ag2.tar.gz -C /opt/antigravity-2.0 --strip-components=1 && \
+           ln -sf /opt/antigravity-2.0/antigravity /usr/local/bin/antigravity-2.0 && \
+           rm -f /tmp/ag2.tar.gz; \
+         fi" \
+        || log "AVISO: Antigravity 2.0 tarball falhou"
+
+    # Fix broken no final
+    chroot "$ROOTFS_DIR" apt-get install -y -f -qq || true
+
     # Limpeza
-    chroot "$ROOTFS_DIR" apt-get clean
+    chroot "$ROOTFS_DIR" apt-get clean || true
     rm -rf "$ROOTFS_DIR/var/lib/apt/lists"/*
 }
 

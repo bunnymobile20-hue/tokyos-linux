@@ -394,10 +394,8 @@ generate_iso() {
     mkdir -p "$ISO_DIR/EFI/BOOT"
 
     grub-mkrescue -o "$OUTPUT_ISO" "$ISO_DIR" \
-        --modules="part_gpt part_msdos fat ext2 squashfs iso9660 loopback linux search configfile normal" \
         --locales="" \
         --fonts="" \
-        --install-modules="part_gpt part_msdos fat ext2 squashfs iso9660 loopback linux search configfile normal" \
         --themes="" \
         2>&1
 

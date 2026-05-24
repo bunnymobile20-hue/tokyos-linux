@@ -1,0 +1,7 @@
+model_center:
+  default_local: "DeepSeek R1 local"
+  fallback: "Qwen3"
+  premium: 
+    - "Gemini"
+    - "GPT-4"
+    - "Claude"

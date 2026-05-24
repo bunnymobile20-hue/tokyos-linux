@@ -1,0 +1,10 @@
+[Unit]
+Description=Timer for Tokyo OS Health Check (Hourly)
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+Unit=tokyo-healthcheck.service
+
+[Install]
+WantedBy=timers.target

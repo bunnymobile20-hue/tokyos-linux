@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <keyboard>
+    <!-- Atalho de emergência: Ctrl+Alt+T para abrir o terminal sobrepondo o Kiosk -->
+    <keybind key="C-A-t">
+      <action name="Execute">
+        <command>gnome-terminal</command>
+      </action>
+    </keybind>
+    <keybind key="W-Return">
+      <action name="Execute">
+        <command>gnome-terminal</command>
+      </action>
+    </keybind>
+  </keyboard>
+  <theme>
+    <!-- Ocultar completamente as bordas -->
+    <keepBorder>no</keepBorder>
+  </theme>
+  <applications>
+    <!-- Forçar todas as janelas (incluindo o Chrome) a abrir maximizadas e sem barra de título -->
+    <application class="*">
+      <decor>no</decor>
+      <maximized>true</maximized>
+    </application>
+  </applications>
+</openbox_config>

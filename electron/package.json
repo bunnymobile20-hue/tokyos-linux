@@ -1,0 +1,29 @@
+{
+  "name": "tokio-desktop",
+  "version": "1.0.0",
+  "description": "Tokio Desktop",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --linux AppImage"
+  },
+  "build": {
+    "appId": "com.tokio.desktop",
+    "productName": "Tokio",
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility"
+    },
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "keywords": [],
+  "author": "gumustudio",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}

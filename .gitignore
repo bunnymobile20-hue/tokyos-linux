@@ -1,0 +1,92 @@
+# ============================================================
+# TokyOS — .gitignore
+# ============================================================
+
+# Dependencies
+**/node_modules/
+**/venv/
+**/__pycache__/
+**/*.pyc
+**/.venv/
+
+# Build outputs
+**/dist/
+**/dist-ssr/
+backend/dist-tests/
+*.squashfs
+*.iso
+tokyos-linux/build/work*/
+tokyos-runtime/
+
+# Environment and secrets
+**/.env
+**/.env.*
+**/*.local
+**/.envrc
+config/ai-config.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Logs and temp data
+logs/
+*.log
+tmp-notes-dir/
+memory/
+data/
+outputs/
+backups/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Reversa artifacts
+.reversa/
+_reversa_sdd/
+_reversa_forward/
+
+# Independent git repos (tracked separately)
+OpenClaw/
+scratch_openhuman/
+clawos-ref/
+jvs_auth_92kx-ref/
+
+# Large binaries
+ollama.tar.zst
+ollama.tgz
+get-pip.py
+
+# FileBrowser runtime
+filebrowser/filebrowser
+filebrowser/filebrowser.db
+filebrowser/*.tar.gz
+filebrowser/*.tar.gz.*
+
+# Browser agent
+browser_agent/venv/
+
+# Local scripts (user-specific)
+Iniciar_Tokio.sh
+Parar_Tokio.sh
+Servidor_Tokio_Producao.sh
+tokyo_backup.sh
+
+# Temp fix/patch scripts
+fix*.py
+fix*.sh
+patch*.js
+patch*.py
+rewrite_*.py
+update_*.py
+
+# Backend temp test scripts
+backend/test-*.js
+backend/test_*.js
+
+# Test outputs
+test_ai.js

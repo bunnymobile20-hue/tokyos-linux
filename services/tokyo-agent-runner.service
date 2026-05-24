@@ -1,0 +1,11 @@
+[Unit]
+Description=Tokyo OS Agent Runner Preparation
+After=network.target
+
+[Service]
+Type=oneshot
+User=tokio
+Group=tokio
+WorkingDirectory=/home/tokio/TokiOS
+ExecStart=/bin/echo "Tokyo OS Agent Runner: READY"
+RemainAfterExit=yes

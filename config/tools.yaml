@@ -1,0 +1,10 @@
+tools:
+  paperclip: "Organiza funcionários virtuais"
+  openclaw: "Executa ferramentas e scripts externos"
+  hermes: "Memória viva, aprendizado, cria skills"
+  browser_use: "Navegação em WinGestor e sites"
+  firecrawl: "Coleta dados na web"
+  python: "Calcula, analisa e gera dados via script"
+  libreoffice: "Cria e lê planilhas e documentos"
+  opencode: "Programa e corrige módulos"
+  antigravity: "Automatiza e constrói rotinas"

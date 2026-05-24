@@ -1,0 +1,2429 @@
+<!DOCTYPE html><html lang="pt-br" data-bs-theme="light" data-layout-mode="fluid" data-menu-color="dark" data-topbar-color="light" data-layout-position="fixed" data-sidenav-size="default" data-sidenav-user="true" class="menuitem-active"><head><style type="text/css">.swal-icon--error{border-color:#f27474;-webkit-animation:animateErrorIcon .5s;animation:animateErrorIcon .5s}.swal-icon--error__x-mark{position:relative;display:block;-webkit-animation:animateXMark .5s;animation:animateXMark .5s}.swal-icon--error__line{position:absolute;height:5px;width:47px;background-color:#f27474;display:block;top:37px;border-radius:2px}.swal-icon--error__line--left{-webkit-transform:rotate(45deg);transform:rotate(45deg);left:17px}.swal-icon--error__line--right{-webkit-transform:rotate(-45deg);transform:rotate(-45deg);right:16px}@-webkit-keyframes animateErrorIcon{0%{-webkit-transform:rotateX(100deg);transform:rotateX(100deg);opacity:0}to{-webkit-transform:rotateX(0deg);transform:rotateX(0deg);opacity:1}}@keyframes animateErrorIcon{0%{-webkit-transform:rotateX(100deg);transform:rotateX(100deg);opacity:0}to{-webkit-transform:rotateX(0deg);transform:rotateX(0deg);opacity:1}}@-webkit-keyframes animateXMark{0%{-webkit-transform:scale(.4);transform:scale(.4);margin-top:26px;opacity:0}50%{-webkit-transform:scale(.4);transform:scale(.4);margin-top:26px;opacity:0}80%{-webkit-transform:scale(1.15);transform:scale(1.15);margin-top:-6px}to{-webkit-transform:scale(1);transform:scale(1);margin-top:0;opacity:1}}@keyframes animateXMark{0%{-webkit-transform:scale(.4);transform:scale(.4);margin-top:26px;opacity:0}50%{-webkit-transform:scale(.4);transform:scale(.4);margin-top:26px;opacity:0}80%{-webkit-transform:scale(1.15);transform:scale(1.15);margin-top:-6px}to{-webkit-transform:scale(1);transform:scale(1);margin-top:0;opacity:1}}.swal-icon--warning{border-color:#f8bb86;-webkit-animation:pulseWarning .75s infinite alternate;animation:pulseWarning .75s infinite alternate}.swal-icon--warning__body{width:5px;height:47px;top:10px;border-radius:2px;margin-left:-2px}.swal-icon--warning__body,.swal-icon--warning__dot{position:absolute;left:50%;background-color:#f8bb86}.swal-icon--warning__dot{width:7px;height:7px;border-radius:50%;margin-left:-4px;bottom:-11px}@-webkit-keyframes pulseWarning{0%{border-color:#f8d486}to{border-color:#f8bb86}}@keyframes pulseWarning{0%{border-color:#f8d486}to{border-color:#f8bb86}}.swal-icon--success{border-color:#a5dc86}.swal-icon--success:after,.swal-icon--success:before{content:"";border-radius:50%;position:absolute;width:60px;height:120px;background:#fff;-webkit-transform:rotate(45deg);transform:rotate(45deg)}.swal-icon--success:before{border-radius:120px 0 0 120px;top:-7px;left:-33px;-webkit-transform:rotate(-45deg);transform:rotate(-45deg);-webkit-transform-origin:60px 60px;transform-origin:60px 60px}.swal-icon--success:after{border-radius:0 120px 120px 0;top:-11px;left:30px;-webkit-transform:rotate(-45deg);transform:rotate(-45deg);-webkit-transform-origin:0 60px;transform-origin:0 60px;-webkit-animation:rotatePlaceholder 4.25s ease-in;animation:rotatePlaceholder 4.25s ease-in}.swal-icon--success__ring{width:80px;height:80px;border:4px solid hsla(98,55%,69%,.2);border-radius:50%;box-sizing:content-box;position:absolute;left:-4px;top:-4px;z-index:2}.swal-icon--success__hide-corners{width:5px;height:90px;background-color:#fff;padding:1px;position:absolute;left:28px;top:8px;z-index:1;-webkit-transform:rotate(-45deg);transform:rotate(-45deg)}.swal-icon--success__line{height:5px;background-color:#a5dc86;display:block;border-radius:2px;position:absolute;z-index:2}.swal-icon--success__line--tip{width:25px;left:14px;top:46px;-webkit-transform:rotate(45deg);transform:rotate(45deg);-webkit-animation:animateSuccessTip .75s;animation:animateSuccessTip .75s}.swal-icon--success__line--long{width:47px;right:8px;top:38px;-webkit-transform:rotate(-45deg);transform:rotate(-45deg);-webkit-animation:animateSuccessLong .75s;animation:animateSuccessLong .75s}@-webkit-keyframes rotatePlaceholder{0%{-webkit-transform:rotate(-45deg);transform:rotate(-45deg)}5%{-webkit-transform:rotate(-45deg);transform:rotate(-45deg)}12%{-webkit-transform:rotate(-405deg);transform:rotate(-405deg)}to{-webkit-transform:rotate(-405deg);transform:rotate(-405deg)}}@keyframes rotatePlaceholder{0%{-webkit-transform:rotate(-45deg);transform:rotate(-45deg)}5%{-webkit-transform:rotate(-45deg);transform:rotate(-45deg)}12%{-webkit-transform:rotate(-405deg);transform:rotate(-405deg)}to{-webkit-transform:rotate(-405deg);transform:rotate(-405deg)}}@-webkit-keyframes animateSuccessTip{0%{width:0;left:1px;top:19px}54%{width:0;left:1px;top:19px}70%{width:50px;left:-8px;top:37px}84%{width:17px;left:21px;top:48px}to{width:25px;left:14px;top:45px}}@keyframes animateSuccessTip{0%{width:0;left:1px;top:19px}54%{width:0;left:1px;top:19px}70%{width:50px;left:-8px;top:37px}84%{width:17px;left:21px;top:48px}to{width:25px;left:14px;top:45px}}@-webkit-keyframes animateSuccessLong{0%{width:0;right:46px;top:54px}65%{width:0;right:46px;top:54px}84%{width:55px;right:0;top:35px}to{width:47px;right:8px;top:38px}}@keyframes animateSuccessLong{0%{width:0;right:46px;top:54px}65%{width:0;right:46px;top:54px}84%{width:55px;right:0;top:35px}to{width:47px;right:8px;top:38px}}.swal-icon--info{border-color:#c9dae1}.swal-icon--info:before{width:5px;height:29px;bottom:17px;border-radius:2px;margin-left:-2px}.swal-icon--info:after,.swal-icon--info:before{content:"";position:absolute;left:50%;background-color:#c9dae1}.swal-icon--info:after{width:7px;height:7px;border-radius:50%;margin-left:-3px;top:19px}.swal-icon{width:80px;height:80px;border-width:4px;border-style:solid;border-radius:50%;padding:0;position:relative;box-sizing:content-box;margin:20px auto}.swal-icon:first-child{margin-top:32px}.swal-icon--custom{width:auto;height:auto;max-width:100%;border:none;border-radius:0}.swal-icon img{max-width:100%;max-height:100%}.swal-title{color:rgba(0,0,0,.65);font-weight:600;text-transform:none;position:relative;display:block;padding:13px 16px;font-size:27px;line-height:normal;text-align:center;margin-bottom:0}.swal-title:first-child{margin-top:26px}.swal-title:not(:first-child){padding-bottom:0}.swal-title:not(:last-child){margin-bottom:13px}.swal-text{font-size:16px;position:relative;float:none;line-height:normal;vertical-align:top;text-align:left;display:inline-block;margin:0;padding:0 10px;font-weight:400;color:rgba(0,0,0,.64);max-width:calc(100% - 20px);overflow-wrap:break-word;box-sizing:border-box}.swal-text:first-child{margin-top:45px}.swal-text:last-child{margin-bottom:45px}.swal-footer{text-align:right;padding-top:13px;margin-top:13px;padding:13px 16px;border-radius:inherit;border-top-left-radius:0;border-top-right-radius:0}.swal-button-container{margin:5px;display:inline-block;position:relative}.swal-button{background-color:#7cd1f9;color:#fff;border:none;box-shadow:none;border-radius:5px;font-weight:600;font-size:14px;padding:10px 24px;margin:0;cursor:pointer}.swal-button:not([disabled]):hover{background-color:#78cbf2}.swal-button:active{background-color:#70bce0}.swal-button:focus{outline:none;box-shadow:0 0 0 1px #fff,0 0 0 3px rgba(43,114,165,.29)}.swal-button[disabled]{opacity:.5;cursor:default}.swal-button::-moz-focus-inner{border:0}.swal-button--cancel{color:#555;background-color:#efefef}.swal-button--cancel:not([disabled]):hover{background-color:#e8e8e8}.swal-button--cancel:active{background-color:#d7d7d7}.swal-button--cancel:focus{box-shadow:0 0 0 1px #fff,0 0 0 3px rgba(116,136,150,.29)}.swal-button--danger{background-color:#e64942}.swal-button--danger:not([disabled]):hover{background-color:#df4740}.swal-button--danger:active{background-color:#cf423b}.swal-button--danger:focus{box-shadow:0 0 0 1px #fff,0 0 0 3px rgba(165,43,43,.29)}.swal-content{padding:0 20px;margin-top:20px;font-size:medium}.swal-content:last-child{margin-bottom:20px}.swal-content__input,.swal-content__textarea{-webkit-appearance:none;background-color:#fff;border:none;font-size:14px;display:block;box-sizing:border-box;width:100%;border:1px solid rgba(0,0,0,.14);padding:10px 13px;border-radius:2px;transition:border-color .2s}.swal-content__input:focus,.swal-content__textarea:focus{outline:none;border-color:#6db8ff}.swal-content__textarea{resize:vertical}.swal-button--loading{color:transparent}.swal-button--loading~.swal-button__loader{opacity:1}.swal-button__loader{position:absolute;height:auto;width:43px;z-index:2;left:50%;top:50%;-webkit-transform:translateX(-50%) translateY(-50%);transform:translateX(-50%) translateY(-50%);text-align:center;pointer-events:none;opacity:0}.swal-button__loader div{display:inline-block;float:none;vertical-align:baseline;width:9px;height:9px;padding:0;border:none;margin:2px;opacity:.4;border-radius:7px;background-color:hsla(0,0%,100%,.9);transition:background .2s;-webkit-animation:swal-loading-anim 1s infinite;animation:swal-loading-anim 1s infinite}.swal-button__loader div:nth-child(3n+2){-webkit-animation-delay:.15s;animation-delay:.15s}.swal-button__loader div:nth-child(3n+3){-webkit-animation-delay:.3s;animation-delay:.3s}@-webkit-keyframes swal-loading-anim{0%{opacity:.4}20%{opacity:.4}50%{opacity:1}to{opacity:.4}}@keyframes swal-loading-anim{0%{opacity:.4}20%{opacity:.4}50%{opacity:1}to{opacity:.4}}.swal-overlay{position:fixed;top:0;bottom:0;left:0;right:0;text-align:center;font-size:0;overflow-y:auto;background-color:rgba(0,0,0,.4);z-index:10000;pointer-events:none;opacity:0;transition:opacity .3s}.swal-overlay:before{content:" ";display:inline-block;vertical-align:middle;height:100%}.swal-overlay--show-modal{opacity:1;pointer-events:auto}.swal-overlay--show-modal .swal-modal{opacity:1;pointer-events:auto;box-sizing:border-box;-webkit-animation:showSweetAlert .3s;animation:showSweetAlert .3s;will-change:transform}.swal-modal{width:478px;opacity:0;pointer-events:none;background-color:#fff;text-align:center;border-radius:5px;position:static;margin:20px auto;display:inline-block;vertical-align:middle;-webkit-transform:scale(1);transform:scale(1);-webkit-transform-origin:50% 50%;transform-origin:50% 50%;z-index:10001;transition:opacity .2s,-webkit-transform .3s;transition:transform .3s,opacity .2s;transition:transform .3s,opacity .2s,-webkit-transform .3s}@media (max-width:500px){.swal-modal{width:calc(100% - 20px)}}@-webkit-keyframes showSweetAlert{0%{-webkit-transform:scale(1);transform:scale(1)}1%{-webkit-transform:scale(.5);transform:scale(.5)}45%{-webkit-transform:scale(1.05);transform:scale(1.05)}80%{-webkit-transform:scale(.95);transform:scale(.95)}to{-webkit-transform:scale(1);transform:scale(1)}}@keyframes showSweetAlert{0%{-webkit-transform:scale(1);transform:scale(1)}1%{-webkit-transform:scale(.5);transform:scale(.5)}45%{-webkit-transform:scale(1.05);transform:scale(1.05)}80%{-webkit-transform:scale(.95);transform:scale(.95)}to{-webkit-transform:scale(1);transform:scale(1)}}</style>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta content="Coderthemes" name="author">
+        <!-- CSRF Token -->
+        <meta name="csrf-token" content="XDmSiymCAdxhp5FiyCi8m6NgXMeqK0AEijWnM6wL">
+
+        <title>Home</title>
+
+        <link rel="shortcut icon" href="/logo-sm.png">
+        <script rel="stylesheet" src="/assets/js/config.js"></script>
+
+        <link href="/assets/vendor/fullcalendar/main.min.css" rel="stylesheet" type="text/css">
+        <link href="/assets/vendor/select2/css/select2.min.css" rel="stylesheet" type="text/css">
+        <link href="/assets/vendor/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css">
+        <link href="/assets/vendor/bootstrap-touchspin/jquery.bootstrap-touchspin.min.css" rel="stylesheet" type="text/css">
+        <link href="/assets/vendor/admin-resources/jquery.vectormap/jquery-jvectormap-1.2.2.css">
+        <link href="/assets/vendor/flatpickr/flatpickr.min.css" rel="stylesheet" type="text/css">
+
+        <link href="/assets/css/app.css" rel="stylesheet" type="text/css" id="app-style">
+        <!-- <link href="/assets/css/app-rtl.css" rel="stylesheet" type="text/css"/> -->
+        <link href="/assets/css/icons.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" type="text/css" href="/assets/css/toastr.min.css">
+        <link rel="stylesheet" type="text/css" href="/css/style.css">
+
+        <link href="/bs5-tour/css/bs5-intro-tour.css" rel="stylesheet">
+
+        <link rel="stylesheet" href="/css/bootstrap-duallistbox.min.css">
+
+        
+    </head>
+    <body class="show" aria-describedby="popover911380">
+
+        <div class="loader loader--hidden"></div>
+                <input type="hidden" value="14" id="empresa_id" style="">
+                <input type="hidden" value="17" id="usuario_id" style="">
+
+        <div class="wrapper">
+            <!-- ========== Topbar Start ========== -->
+            <div class="navbar-custom">
+                <div class="topbar container-fluid">
+                    <div class="d-flex align-items-center gap-lg-2 gap-1" id="step1">
+
+                        <!-- Topbar Brand Logo -->
+                        <div class="logo-topbar">
+                            <!-- Logo light -->
+                            <a href="/" class="logo-light">
+                                <span class="logo-lg">
+                                    <img src="/logo-sm.png" alt="logo">
+
+                                </span>
+                                <span class="logo-sm">
+                                    <img src="/logo-sm.png" alt="small logo">
+                                </span>
+                            </a>
+
+                            <!-- Logo Dark -->
+                            <a href="/" class="logo-dark">
+                                <span class="logo-lg">
+                                    <img src="/logo-sm.png" alt="dark logo">
+                                </span>
+                                <span class="logo-sm">
+                                    <img src="/logo-sm.png" alt="small logo">
+                                </span>
+                            </a>
+                        </div>
+
+                        <!-- Sidebar Menu Toggle Button -->
+                        <button class="button-toggle-menu">
+                            <i class="ri-menu-2-fill"></i>
+                        </button>
+
+                        <!-- Horizontal Menu Toggle Button -->
+                        <button class="navbar-toggle" data-bs-toggle="collapse" data-bs-target="#topnav-menu-content">
+                            <div class="lines">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </button>
+
+                        <!-- Topbar Search Form -->
+                                                
+                        <div class="app-search dropdown d-none d-lg-block">
+                            <span class="badge border border-light shadow bg-white rounded">
+                                <i class="ri-building-line text-primary"></i>
+                                <span class="text-dark">EMPRESA:</span>
+
+                                <span class="text-primary">BUNNY DREAMS LTDA</span>
+                            </span>
+                        </div>
+
+                        <div class="app-search dropdown d-none d-lg-block">
+                            <span class="badge border border-light shadow bg-white rounded">
+                                <i class="ri-server-line text-primary"></i>
+                                <span class="text-dark">AMBIENTE:</span>
+
+                                <span class="text-primary">PRODUÇÃO</span>
+                            </span>
+                        </div>
+
+                        
+                        
+                        <div class="app-search dropdown d-none d-lg-block">
+                            <span class="badge border border-light shadow bg-white rounded">
+                                <i class="ri-wifi-line text-primary"></i>
+                                <span class="text-dark">IP:</span>
+
+                                <span class="text-primary">170.245.122.162</span>
+                            </span>
+                        </div>
+
+                        
+                        
+                                                
+                        <div class="app-search dropdown d-lg-block d-none d-md-inline-block">
+
+                            <div class="app-search dropdown d-none d-lg-block">
+                                <span class="badge border border-light shadow bg-white rounded">
+                                    <i class="ri-vip-crown-fill text-warning"></i>
+                                    <span class="text-dark">PLANO:</span>
+
+                                    <span class="text-primary">
+                                        Plano empresas 2 - até:
+                                        <strong>29/12/2125</strong>
+                                    </span>
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <div class="app-search dropdown d-lg-block d-none d-md-inline-block">
+                                                                                                            </div>
+
+                        
+                                                
+                        <div class="app-search dropdown d-lg-block video d-none d-md-inline-block">
+                        </div>
+                        
+                    </div>
+
+
+                    <ul class="topbar-menu d-flex align-items-center gap-3">
+
+                        <!-- inicio alertas -->
+
+                        <li class="dropdown notification-list">
+                            <a class="nav-link dropdown-toggle arrow-none" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                                <i class="ri-notification-3-fill fs-22"></i>
+                                <div class="spinner-border spinner-border-sm text-danger d-none" role="status">
+                                    <span class="visually-hidden"></span>
+                                </div>
+                                <span class="noti-icon-badge d-none"></span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated dropdown-lg py-0" style="">
+                                <div class="p-2 border-top-0 border-start-0 border-end-0 border-dashed border">
+                                    <div class="row align-items-center">
+                                        <div class="col">
+                                            <h6 class="m-0 fs-16 fw-medium"> Notificações</h6>
+                                        </div>
+                                        <div class="col-auto">
+                                            <a href="https://app.wingestor.com.br/notificacao-clear-all" class="text-dark text-decoration-underline">
+                                                <small>Limpar tudo</small>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="max-height: 300px;" data-simplebar="init"><div class="simplebar-wrapper" style="margin: 0px;"><div class="simplebar-height-auto-observer-wrapper"><div class="simplebar-height-auto-observer"></div></div><div class="simplebar-mask"><div class="simplebar-offset" style="right: 0px; bottom: 0px;"><div class="simplebar-content-wrapper" tabindex="0" role="region" aria-label="scrollable content" style="height: auto; overflow: hidden scroll;"><div class="simplebar-content alertas-main" style="padding: 0px;"></div></div></div></div><div class="simplebar-placeholder" style="width: auto; height: 432px;"></div></div><div class="simplebar-track simplebar-horizontal" style="visibility: hidden;"><div class="simplebar-scrollbar" style="width: 0px; display: none;"></div></div><div class="simplebar-track simplebar-vertical" style="visibility: visible;"><div class="simplebar-scrollbar" style="height: 208px; transform: translate3d(0px, 0px, 0px); display: block;"></div></div></div>
+
+
+                            </div>
+                        </li>
+
+                                                                                                <li class="d-none d-sm-inline-block">
+                            <a title="PDV" class="nav-link" href="https://app.wingestor.com.br/frontbox/create">
+                                <i class="ri-shopping-basket-2-fill fs-22"></i>
+                            </a>
+                        </li>
+                                                                        
+                        <li class="d-none d-sm-inline-block" id="step2">
+                            <div class="nav-link" id="light-dark-mode">
+                                <i class="ri-moon-fill fs-22"></i>
+                            </div>
+                        </li>
+
+                        <li class="d-none d-md-inline-block">
+                            <a class="nav-link" href="" data-toggle="fullscreen">
+                                <i class="ri-fullscreen-line fs-22"></i>
+                            </a>
+                        </li>
+
+                        <li class="dropdown me-md-2" id="step3">
+                            <a class="nav-link dropdown-toggle arrow-none nav-user px-2" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                                <span class="account-user-avatar">
+                                                                        <img src="/uploads/usuarios/5a2XuuTUrSUEqHFVJX5S.jpg" height="32" class="rounded-circle">
+                                                                    </span>
+                                <span class="d-lg-flex flex-column gap-1 d-none">
+                                    <h5 class="my-0"> Bunny Dreams Ltda</h5>
+                                    <h6 class="my-0 fw-normal"></h6>
+
+                                </span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated profile-dropdown">
+                                <!-- item-->
+                                <div class=" dropdown-header noti-title">
+                                    <h6 class="text-overflow m-0">Bem vindo!</h6>
+                                </div>
+
+                                                                <a href="https://app.wingestor.com.br/usuarios/profile/17" class="dropdown-item">
+                                    <i class="ri-account-circle-fill align-middle me-1"></i>
+                                    <span>Minha Conta</span>
+                                </a>
+
+                                <!-- item-->
+                                <a href="https://app.wingestor.com.br/config" class="dropdown-item">
+                                    <i class="ri-settings-4-fill align-middle me-1"></i>
+                                    <span>Configuração</span>
+                                </a>
+
+                                <a href="https://app.wingestor.com.br/ticket" class="dropdown-item">
+                                    <i class="ri-information-fill align-middle me-1"></i>
+                                    <span>Abrir chamado</span>
+                                </a>
+                                
+                                <!-- item-->
+                                <a class="dropdown-item" href="https://app.wingestor.com.br/logout" onclick="event.preventDefault();document.getElementById('logout-form').submit();">
+                                    <i class="ri-logout-box-line  align-middle me-1"></i>
+                                    Sair
+                                </a>
+                                <form id="logout-form" action="https://app.wingestor.com.br/logout" method="POST" class="d-none">
+                                    <input type="hidden" name="_token" value="XDmSiymCAdxhp5FiyCi8m6NgXMeqK0AEijWnM6wL" autocomplete="off" style="">                                </form>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- ========== Topbar End ========== -->
+
+            <!-- init:: Menu -->
+                        <div class="leftside-menu menuitem-active">
+    <!-- Brand Logo Light -->
+    <a href="/" class="logo logo-light">
+        <span class="logo-lg">
+            <img class="logo-painel" src="/logo.png" alt="logo">
+        </span>
+        <span class="logo-sm">
+            <img src="/logo-sm.png" alt="small logo">
+        </span>
+    </a>
+
+    <!-- Brand Logo Dark -->
+    <a href="/" class="logo logo-dark">
+        <span class="logo-lg">
+            <img class="logo-painel" src="/logo.png" alt="dark logo">
+        </span>
+        <span class="logo-sm">
+            <img src="/logo-sm.png" alt="small logo">
+        </span>
+    </a>
+
+    <!-- Sidebar Hover Menu Toggle Button -->
+    <div class="button-sm-hover" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="Show Full Sidebar" data-bs-original-title="Show Full Sidebar">
+        <i class="ri-checkbox-blank-circle-line align-middle"></i>
+    </div>
+
+    <!-- Full Sidebar Menu Close Button -->
+    <div class="button-close-fullsidebar">
+        <i class="ri-close-fill align-middle"></i>
+    </div>
+
+    <!-- Sidebar -left -->
+    <div class="h-100 show" id="leftside-menu-container" data-simplebar="init"><div class="simplebar-wrapper" style="margin: 0px;"><div class="simplebar-height-auto-observer-wrapper"><div class="simplebar-height-auto-observer"></div></div><div class="simplebar-mask"><div class="simplebar-offset" style="right: 0px; bottom: 0px;"><div class="simplebar-content-wrapper" tabindex="0" role="region" aria-label="scrollable content" style="height: 100%; overflow: hidden scroll;"><div class="simplebar-content" style="padding: 0px;">
+        <!-- Leftbar User -->
+        <div class="leftbar-user p-3 text-white">
+            <a href="https://app.wingestor.com.br/usuarios/profile/17" class="d-flex align-items-center text-reset">
+                <div class="flex-shrink-0">
+                                        <img src="/uploads/usuarios/5a2XuuTUrSUEqHFVJX5S.jpg" height="42" class="rounded-circle shadow">
+                                    </div>
+                <div class="flex-grow-1 ms-2">
+                    <span class="fw-semibold fs-15 d-block"> Bunny Dreams Ltda</span>
+                    <span class="fs-13"></span>
+                </div>
+                <div class="ms-auto">
+                    <i class="ri-arrow-right-s-fill fs-20"></i>
+                </div>
+            </a>
+        </div>
+
+        <!--- Sidemenu -->
+        <ul class="side-nav" id="step4">
+
+            <li class="side-nav-title mt-1"> Menu</li>
+
+            <li class="side-nav-item menuitem-active">
+                <a href="https://app.wingestor.com.br/home" class="side-nav-link active">
+                    <i class="ri-dashboard-2-fill"></i>
+                    <span class="badge bg-success float-end"></span>
+                    <span> Home </span>
+                </a>
+            </li>
+
+            
+            
+            
+                                    
+                        <li class="side-nav-item" id="step7">
+                            <a data-bs-toggle="collapse" href="#sidebarExtendedProd" aria-expanded="false" aria-controls="sidebarExtendedUI" class="side-nav-link">
+                                <i class="ri-product-hunt-fill"></i>
+                                <span> Produtos </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarExtendedProd">
+                                <ul class="side-nav-second-level">
+
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/categoria-produtos">Categorias</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/produtos">Listar</a>
+                                    </li>
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/produtos/create">Novo Produto</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/estoque">Estoque</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/inventarios">Inventário</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/variacoes">Variações</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/lista-preco">Lista de preços</a>
+                                    </li>
+                                    
+                                    
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/produtopadrao-tributacao">Configuração Padrão Fiscal</a>
+                                    </li>
+                                                                        
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/marcas">Marcas</a>
+                                    </li>
+                                    
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/modelo-etiquetas">Modelos de Etiqueta</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/produto-consulta-codigo">Consulta código</a>
+                                    </li>
+
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/transferencia-estoque">Transferência de estoque</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/unidades-medida">Unidades de medida</a>
+                                    </li>
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/categoria-estorno">Categoria de Estorno</a>
+                                    </li>
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/categoria-estorno-relatorio">Historico de Estorno</a>
+                                    </li>
+                                                                    </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarAtendimento" aria-expanded="false" aria-controls="sidebarAtendimento" class="side-nav-link">
+                                <i class="ri-store-2-line"></i>
+                                <span> Atendimento </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarAtendimento">
+                                <ul class="side-nav-third-level">
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/atendimentos">Dias de Atendimento</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/interrupcoes">Interrupções</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/funcionamentos">Horário de Funcionamento</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarExtendedServ" aria-expanded="false" aria-controls="sidebarExtendedSer" class="side-nav-link">
+                                <i class="ri-tools-fill"></i>
+                                <span> Serviços </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarExtendedServ">
+                                <ul class="side-nav-second-level">
+
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/categoria-servico">Categorias</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/servicos">Listar</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/servicos/create">Novo serviço</a>
+                                    </li>
+                                    
+                                </ul>
+                            </div>
+                        </li>
+                                    
+                                    
+                        <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarOs" aria-expanded="false" aria-controls="sidebarExtendedSer" class="side-nav-link">
+                                <i class="ri-ruler-2-line"></i>
+                                <span> Ordem de Serviço </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarOs">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/ordem-servico">Listar</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/ordem-servico/create">Nova OS</a>
+                                    </li>
+                                    
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/ordem-servico/metas">Metas</a>
+                                    </li>
+                                                                    </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarOrdemProducao" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-pencil-ruler-line"></i>
+
+                                <span>Ordem de Produção</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarOrdemProducao">
+                                <ul class="side-nav-second-level">
+
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/ordem-producao">Listar</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/ordem-producao/create">Nova Ordem</a>
+                                    </li>
+                                                                    </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarAgendamentos" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-calendar-event-fill"></i>
+
+                                <span>Agendamentos</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarAgendamentos">
+                                <ul class="side-nav-second-level">
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/agendamentos">Listar</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item" id="step6">
+                            <a data-bs-toggle="collapse" href="#sidebarUsuarios" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-user-fill"></i>
+
+                                <span>Usuários</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarUsuarios">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/usuarios">Listar</a>
+                                    </li>
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/controle-acesso">Controle de acesso</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/config-fiscal-usuario">Configuração fiscal</a>
+                                    </li>
+                                                                    </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item" id="step6">
+                            <a data-bs-toggle="collapse" href="#sidebarPessoas" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-group-2-fill"></i>
+
+                                <span>Pessoas</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarPessoas">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/clientes">Clientes</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/fornecedores">Fornecedores</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/transportadoras">Transportadoras</a>
+                                    </li>
+                                    
+                                </ul>
+                            </div>
+                        </li>
+                    
+                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarGestaoPessoal" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-folder-user-line"></i>
+
+                                <span>Gestão Pessoal</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarGestaoPessoal">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/funcionarios">Funcionários</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/evento-funcionarios">Eventos</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/funcionario-eventos">Funcionários x Eventos</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/apuracao-mensal">Apuração Mensal</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/comissao-margem">Comissão por margem</a>
+                                    </li>
+                                    
+                                </ul>
+                            </div>
+                        </li>
+                    
+                
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarCompra" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-logout-box-line"></i>
+
+                                <span>Compras</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarCompra">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/compras">Listar</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/compras/create" data-toggle="fullscreen" class="dropdown-item">Nova
+                                        </a>
+                                    </li>
+                                    
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/compras-xml" data-toggle="fullscreen" class="dropdown-item">
+                                            Importar XML
+                                        </a>
+                                    </li>
+
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/manifesto" data-toggle="fullscreen" class="dropdown-item">
+                                            Manifesto
+                                        </a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/cotacoes" data-toggle="fullscreen" class="dropdown-item">
+                                            Cotação
+                                        </a>
+                                    </li>
+                                    
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/nfe-entrada-xml">Arquivos XML Emitidos</a>
+                                    </li>
+                                                                        
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/nfe-importa-xml">Arquivos XML Importados</a>
+                                    </li>
+                                                                        
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/relacao-dados-fornecedor" data-toggle="fullscreen" class="dropdown-item">
+                                            Relação dados fornecedor
+                                        </a>
+                                    </li>
+                                                                    </ul>
+                            </div>
+                        </li>
+                                    
+                                                                                        <li class="side-nav-item">
+                                <a data-bs-toggle="collapse" href="#sidebarDevolucao" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                    <i class="ri-arrow-go-back-fill"></i>
+
+                                    <span>Devolução</span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <div class="collapse" id="sidebarDevolucao">
+                                    <ul class="side-nav-second-level">
+
+                                                                                <li>
+                                            <a href="https://app.wingestor.com.br/devolucao" data-toggle="fullscreen" class="dropdown-item">
+                                                Lista
+                                            </a>
+                                        </li>
+                                        
+                                                                                <li>
+                                            <a href="https://app.wingestor.com.br/devolucao-xml" data-toggle="fullscreen" class="dropdown-item">
+                                                Nova devolução
+                                            </a>
+                                        </li>
+                                        
+                                    </ul>
+                                </div>
+                            </li>
+                                                            
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarPDV" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-shopping-cart-fill"></i>
+
+                                <span>PDV</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarPDV">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/frontbox">Listar</a>
+                                    </li>
+                                    
+                                                                        <li class="d-none d-sm-inline-block">
+                                        <a href="https://app.wingestor.com.br/frontbox/create" data-toggle="fullscreen" class="dropdown-item">PDV</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/trocas" data-toggle="fullscreen" class="dropdown-item">Trocas</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/categoria-origem">Categorias de Origem</a>
+                                    </li>
+                                                                        
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/frontbox-mesas" data-toggle="fullscreen" class="dropdown-item">Mesas/Comandas</a>
+                                    </li>
+                                                                        
+                                    <!--                                     <li>
+                                        <a href="https://app.wingestor.com.br/tef-registros">Registros de TEF</a>
+                                    </li>
+                                     -->
+                                </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarNfe" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-file-list-fill"></i>
+
+                                <span>Vendas</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarNfe">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/vendas">Todas as Vendas</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/nfe">Vendas pedido</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/nfe/create">Nova</a>
+                                    </li>
+                                    
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/nfe-inutilizar">Inutilizar NFe</a>
+                                    </li>
+                                                                        
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/orcamentos">Orçamentos</a>
+                                    </li>
+                                    
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/nfe-xml">Arquivos XML</a>
+                                    </li>
+                                                                        
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/nfe-import-zip">Importar XML</a>
+                                    </li>
+
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/nfe-metas">Metas</a>
+                                    </li>
+                                                                    </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarPagar" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-money-dollar-box-fill"></i>
+                                <span>Financeiro</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarPagar">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a data-bs-toggle="collapse" href="#caixa" aria-expanded="false" aria-controls="caixa">
+                                            <span> Caixa </span>
+                                            <span class="menu-arrow"></span>
+                                        </a>
+                                        <div class="collapse" id="caixa">
+                                            <ul class="side-nav-third-level">
+                                                <li>
+                                                    <a href="https://app.wingestor.com.br/caixa">Movimentação</a>
+                                                </li>
+
+                                                <li>
+                                                    <a href="https://app.wingestor.com.br/caixa/create">Abrir caixa</a>
+                                                </li>
+                                                <li>
+                                                    <a href="https://app.wingestor.com.br/caixa/list">Listar</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a data-bs-toggle="collapse" href="#pagar" aria-expanded="false" aria-controls="pagar">
+                                            <span> Contas a pagar </span>
+                                            <span class="menu-arrow"></span>
+                                        </a>
+                                        <div class="collapse" id="pagar">
+                                            <ul class="side-nav-third-level">
+                                                                                                <li>
+                                                    <a href="https://app.wingestor.com.br/conta-pagar">Listar</a>
+                                                </li>
+                                                
+                                                                                                <li>
+                                                    <a href="https://app.wingestor.com.br/conta-pagar/create">Nova conta</a>
+                                                </li>
+                                                
+                                            </ul>
+                                        </div>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a data-bs-toggle="collapse" href="#receber" aria-expanded="false" aria-controls="receber">
+                                            <span> Contas a receber </span>
+                                            <span class="menu-arrow"></span>
+                                        </a>
+                                        <div class="collapse" id="receber">
+                                            <ul class="side-nav-third-level">
+                                                                                                <li>
+                                                    <a href="https://app.wingestor.com.br/conta-receber">Listar</a>
+                                                </li>
+                                                
+                                                                                                <li>
+                                                    <a href="https://app.wingestor.com.br/conta-receber/create">Nova conta</a>
+                                                </li>
+                                                                                            </ul>
+                                        </div>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/categoria-conta">Categorias de conta</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/relatorios">Relatórios</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/taxa-cartao">Taxas de pagamento</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/plano-contas">Plano de contas</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/contas-empresa">Contas da empresa</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/contas-boleto">Contas para boleto</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/boletos">Boletos</a>
+                                    </li>
+                                    
+                                </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarNfce" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-bill-line"></i>
+                                <span>NFCe</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarNfce">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/nfce">Listar</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/nfce/create">Nova</a>
+                                    </li>
+                                    
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/nfce-inutilizar">Inutilizar</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/nfce-xml">Arquivos XML</a>
+                                    </li>
+                                                                        
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/nfce-import-zip">Importar XML</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/nfce-contigencia">Envio Contigência</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarPreVenda" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class=" ri-list-ordered"></i>
+                                <span>Pré Venda</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarPreVenda">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/pre-venda">Listar</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/pre-venda/create">Nova</a>
+                                    </li>
+                                                                    </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarCardapio" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-restaurant-2-line"></i>
+                                <span>Cardápio</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarCardapio">
+                                <ul class="side-nav-second-level">
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/config-cardapio">Configuração</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/produtos-cardapio-categorias">Categorias</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/produtos-cardapio">Produtos</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/categoria-adicional">Categorias de adicional</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/adicionais">Adicionais</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/pedidos-cardapio">Comandas</a>
+                                    </li>
+                                    
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/mesas">Cadastrar mesas</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/pedido-cozinha">Controle de pedidos</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/impressao-pedido">Controle de impressão</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/carrossel">Carrossel destaque</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/avaliacao-cardapio">Avaliações</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/tamanhos-pizza">Tamanhos de pizza</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/atendimento-garcom">Atendimentos garçom</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/pedidos-cardapio-historico">Histórico</a>
+                                    </li>
+
+
+                                                                    </ul>
+                            </div>
+                        </li>
+                                    
+                
+                
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarPlanejamentoCustos" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-dashboard-fill"></i>
+                                <span>Planejamento de Custos</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarPlanejamentoCustos">
+                                <ul class="side-nav-second-level">
+
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/projeto-custo">Projetos</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/planejamento-custo">Planejamentos</a>
+                                    </li>
+                                                                        
+                                </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarControleFrete" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-road-map-line"></i>
+                                <span>Controle de Fretes</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarControleFrete">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/tipo-despesa-frete">Tipos de despesa de frete</a>
+                                    </li>
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/fretes">Fretes</a>
+                                    </li>
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/manutencao-veiculos">Manutenção de veículos</a>
+                                    </li>
+                                                                    </ul>
+                            </div>
+                        </li>
+                                    
+                
+                
+                                                                                        <li class="side-nav-item">
+                                <a data-bs-toggle="collapse" href="#sidebarEcommerce" aria-expanded="false" aria-controls="sidebarPages" class="side-nav-link">
+                                    <i class="ri-store-3-line"></i>
+                                    <span> Ecommerce </span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <div class="collapse" id="sidebarEcommerce">
+                                    <ul class="side-nav-second-level">
+                                        <li>
+                                            <a href="https://app.wingestor.com.br/config-ecommerce">Configuração</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://app.wingestor.com.br/produtos-ecommerce-categorias">Categorias de produtos</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://app.wingestor.com.br/produtos-ecommerce">Produtos</a>
+                                        </li>
+
+                                        <li>
+                                            <a href="https://app.wingestor.com.br/pedidos-ecommerce">Pedidos</a>
+                                        </li>
+
+                                        <li>
+                                            <a target="_blank" href="https://app.wingestor.com.br/config-ecommerce-site">Ver site</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                                                            
+                                                                                        <li class="side-nav-item">
+                                <a data-bs-toggle="collapse" href="#sidebarMercadoLivre" aria-expanded="false" aria-controls="sidebarPages" class="side-nav-link">
+                                    <i class="ri-box-1-line"></i>
+                                    <span> Mercado Livre </span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <div class="collapse" id="sidebarMercadoLivre">
+                                    <ul class="side-nav-second-level">
+
+                                        <li>
+                                            <a href="https://app.wingestor.com.br/mercado-livre-config">Configuração</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://app.wingestor.com.br/mercado-livre-produtos-news">Produtos</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://app.wingestor.com.br/mercado-livre-perguntas">Perguntas</a>
+                                        </li>
+
+                                        <li>
+                                            <a href="https://app.wingestor.com.br/mercado-livre-pedidos">Pedidos</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                                                            
+                                                    
+                                                                                                                                        <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarMarketPlace" aria-expanded="false" aria-controls="sidebarPages" class="side-nav-link">
+                                <i class="ri-store-2-line"></i>
+                                <span>Delivery/Marketplace</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarMarketPlace">
+                                <ul class="side-nav-second-level">
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/config-marketplace">Configuração</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/pedidos-delivery">Pedidos</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/produtos-delivery-categorias">Categorias de produto</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/categoria-servico-marketplace">Categorias de serviço</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/produtos-delivery">Produtos</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/servicos-marketplace">Serviços</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/funcionamento-delivery">Funcionamento</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/bairros-empresa">Bairros</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/frete-empresa">Frete</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/categoria-adicional">Categorias de adicional</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/adicionais">Adicionais</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/destaque-marketplace">Destaques</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/cupom-desconto">Cupom de desconto</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/tamanhos-pizza">Tamanhos de pizza</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/motoboys">Motoboys</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/pedido-cozinha">Controle de pedidos</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/impressao-pedido">Controle de impressão</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/clientes-delivery">Clientes</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/config-agendamento">Configuração de agendamento</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://app.wingestor.com.br/config-marketplace-loja">Ver loja</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                                                            
+                
+                                                            <li class="side-nav-item" id="step5">
+                            <a data-bs-toggle="collapse" href="#sidebarLocalizacao" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-building-4-line"></i>
+                                <span>Localizações</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarLocalizacao">
+                                <ul class="side-nav-second-level">
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/localizacao">Listar</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                                    
+                                                                                        <li class="side-nav-item">
+                                <a data-bs-toggle="collapse" href="#sidebarReservas" aria-expanded="false" aria-controls="sidebarPages" class="side-nav-link">
+                                    <i class="ri-hotel-line"></i>
+                                    <span> Reservas </span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <div class="collapse" id="sidebarReservas">
+                                    <ul class="side-nav-second-level">
+                                                                                <li>
+                                            <a href="https://app.wingestor.com.br/config-reserva">Configuração</a>
+                                        </li>
+                                                                                                                        <li>
+                                            <a href="https://app.wingestor.com.br/categoria-acomodacao">Categorias de acomodação</a>
+                                        </li>
+                                                                                                                        <li>
+                                            <a href="https://app.wingestor.com.br/acomodacao">Acomodações</a>
+                                        </li>
+                                                                                                                        <li>
+                                            <a href="https://app.wingestor.com.br/frigobar">Frigobares</a>
+                                        </li>
+                                                                                                                        <li>
+                                            <a href="https://app.wingestor.com.br/reservas">Reservas</a>
+                                        </li>
+                                                                                <li>
+                                            <a href="https://app.wingestor.com.br/produtos-reserva">Produtos</a>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                            </li>
+                                                            
+                                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarCrm" aria-expanded="false" aria-controls="sidebarPages" class="side-nav-link">
+                                <i class="ri-user-voice-fill"></i>
+                                <span> CRM </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarCrm">
+                                <ul class="side-nav-second-level">
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/crm">Listar</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                                    
+                                                            <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarSped" aria-expanded="false" aria-controls="sidebarPages" class="side-nav-link">
+                                <i class="ri-book-fill"></i>
+                                <span> Sped </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarSped">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/sped-config">Configuração</a>
+                                    </li>
+                                                                                                            <li>
+                                        <a href="https://app.wingestor.com.br/sped">Arquivo</a>
+                                    </li>
+                                                                    </ul>
+                            </div>
+                        </li>
+                                    
+                
+                                                            <li class="side-nav-item" id="step5">
+                            <a data-bs-toggle="collapse" href="#sidebarConfig" aria-expanded="false" aria-controls="sidebarIcons" class="side-nav-link">
+                                <i class="ri-settings-4-fill"></i>
+                                <span>Configuração</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebarConfig">
+                                <ul class="side-nav-second-level">
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/config">Emitente</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/natureza-operacao">Natureza de operação</a>
+                                    </li>
+                                    
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/email-config">Configuração de email</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/escritorio-contabil">Escritório contábil</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/config-geral/create">Geral</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/difal">Op. Interestadual - Difal</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/cash-back-config">CashBack</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/contigencia">Contigência</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/tef-config">TEF</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/config-api">API</a>
+                                    </li>
+                                    
+                                    <li>
+                                        <a href="https://app.wingestor.com.br/sintegra">Sintegra</a>
+                                    </li>
+
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/metas">Configuração de metas</a>
+                                    </li>
+                                    
+                                                                        <li>
+                                        <a href="https://app.wingestor.com.br/impressoras-pedido">Impressoras de pedido</a>
+                                    </li>
+                                                                        
+                                </ul>
+                            </div>
+                        </li>
+                    
+                
+            
+                    </ul>
+    </div></div></div></div><div class="simplebar-placeholder" style="width: auto; height: 1206px;"></div></div><div class="simplebar-track simplebar-horizontal" style="visibility: hidden;"><div class="simplebar-scrollbar" style="width: 0px; display: none;"></div></div><div class="simplebar-track simplebar-vertical" style="visibility: visible;"><div class="simplebar-scrollbar" style="height: 361px; transform: translate3d(0px, 0px, 0px); display: block;"></div></div></div>
+</div>
+                        <!-- end:: Menu -->
+
+            <div class="content-page">
+                <div class="content">
+                    <div class=" container-fluid ">
+
+                        <div class="mt-3">
+    <div class="row">
+
+                <div class="card">
+            <div class="row m-2">
+                
+                            </div>
+            <div class="card-body">
+                <h3>Painel</h3>
+
+                <!-- inicio cards -->
+                                <div class="row">
+                    <div class="col-md-4 col-lg-2 col-12 mb-2">
+                        <div class="form-group"><label for="inp-periodo" class="">Período</label><select class="form-control form-select" name="periodo" id="inp-periodo"><option value="1">Hoje</option><option value="7" selected="">Semana</option><option value="30">Mês</option><option value="365">Ano</option></select></div>
+                    </div>
+
+                                        <div class="col-md-2">
+                        <div class="form-group"><label for="inp-local_id" class="">Local</label><select class="form-control form-select" name="local_id" id="inp-local_id"><option value="" selected="">Todos</option><option value="12">Riverside</option><option value="13">Teresina</option></select></div>
+                    </div>
+                                    </div>
+                <div class="row mt-2">
+                    <div class="row">
+                        <div class="col-12 col-lg-3 col-xl-3">
+                            <div class="card widget-icon-box text-bg-success">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <h4 class="text-uppercase fs-13 mt-0" title="Average Revenue">Contas a Receber</h4>
+                                            <h3 class="my-3 total-receber" style="font-size: 16px;">R$ 0,00</h3>
+                                        </div>
+                                        <div class="avatar-sm flex-shrink-0">
+                                            <span class="avatar-title bg-white bg-opacity-25 text-white rounded rounded-3 fs-3 widget-icon-box-avatar shadow">
+                                                <i class="ri-money-dollar-circle-line"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="col-12 col-lg-3 col-xl-3">
+                            <div class="card widget-icon-box text-bg-danger">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <h4 class="text-uppercase fs-13 mt-0" title="Average Revenue">Contas a Pagar</h4>
+                                            <h3 class="my-3 total-pagar" style="font-size: 16px;">R$ 0,00</h3>
+                                        </div>
+                                        <div class="avatar-sm flex-shrink-0">
+                                            <span class="avatar-title bg-white bg-opacity-25 text-white rounded rounded-3 fs-3 widget-icon-box-avatar shadow">
+                                                <i class="ri-money-dollar-circle-line"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="col-12 col-lg-3 col-xl-3">
+                            <div class="card widget-icon-box text-bg-info">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <h4 class="text-uppercase fs-13 mt-0" title="Average Revenue">Produtos</h4>
+                                            <h3 class="my-3 total-produtos" style="font-size: 16px;">58</h3>
+    
+                                        </div>
+                                        <div class="avatar-sm flex-shrink-0">
+                                            <span class="avatar-title bg-white bg-opacity-25 text-white rounded rounded-3 fs-3 widget-icon-box-avatar shadow">
+                                                <i class="ri-box-3-line"></i>
+                                            </span>
+                                        </div>
+    
+                                    </div>
+                                                                    </div>
+                            </div>
+                        </div>
+    
+                        <div class="col-12 col-lg-3 col-xl-3">
+                            <div class="card widget-icon-box text-bg-dark">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <h4 class="text-uppercase fs-13 mt-0" title="Average Revenue">Clientes</h4>
+                                            <h3 class="my-3 total-clientes" style="font-size: 16px;">1</h3>
+                                        </div>
+                                        <div class="avatar-sm flex-shrink-0">
+                                            <span class="avatar-title bg-white bg-opacity-25 text-white rounded rounded-3 fs-3 widget-icon-box-avatar shadow">
+                                                <i class="ri-account-box-fill"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 col-lg-3 col-xl-3">
+                            <div class="card widget-icon-box text-bg-primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <h4 class="text-uppercase fs-13 mt-0" title="Average Revenue">Total de Vendas</h4>
+                                            <h3 class="my-3 total-vendas" style="font-size: 16px;">R$ 10.609,49</h3>
+                                        </div>
+                                        <div class="avatar-sm flex-shrink-0">
+                                            <span class="avatar-title bg-white bg-opacity-25 text-white rounded rounded-3 fs-3 widget-icon-box-avatar shadow">
+                                                <i class="ri-shopping-cart-fill"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="col-12 col-lg-3 col-xl-3">
+                            <div class="card widget-icon-box text-bg-dark">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <h4 class="text-uppercase fs-13 mt-0" title="Average Revenue">Total Devedor</h4>
+                                            <h3 class="my-3 total-vendas-sem-pagar" style="font-size: 16px;">R$ 0,00</h3>
+                                        </div>
+                                        <div class="avatar-sm flex-shrink-0">
+                                            <span class="avatar-title bg-white bg-opacity-25 text-white rounded rounded-3 fs-3 widget-icon-box-avatar shadow">
+                                                <i class="ri-shopping-cart-fill"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="col-12 col-lg-3 col-xl-3">
+                            <div class="card widget-icon-box text-bg-warning">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <h4 class="text-uppercase fs-13 mt-0" title="Average Revenue">Total de Compras</h4>
+                                            <h3 class="my-3 total-compras" style="font-size: 16px;">R$ 7.506,75</h3>
+                                        </div>
+                                        <div class="avatar-sm flex-shrink-0">
+                                            <span class="avatar-title bg-white bg-opacity-25 text-white rounded rounded-3 fs-3 widget-icon-box-avatar shadow">
+                                                <i class="ri-shopping-bag-2-fill"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                                <!-- fim cards -->
+
+                                <hr>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div style="width: 70px; margin-top: 10px;">
+                                <label>Período</label>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="date" id="periodo_inicial" class="form-control" value="2026-05-22" style="">
+                            </div>
+                            <div style="width: 15px; margin-top: 10px;">
+                                <label>à</label>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="date" id="periodo_final" class="form-control" value="2026-05-22" style="">
+                            </div>
+                            <div class="col-md-1">
+                                <button class="btn btn-light" type="button" id="btn-filtrar-contas">
+                                    <i class="ri-search-line"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-lg-4 col-xl-4">
+                                <div class="card widget-icon-box text-bg-dark" style="height: 180px">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div class="flex-grow-1 overflow-hidden">
+                                                <h4 class="text-uppercase fs-13 mt-0">Saldo Total Atualizado</h4>
+                                                <h3 class="my-3 saldo-contas" style="font-size: 22px;">R$ 0,00</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-lg-4 col-xl-4">
+                                <div class="card widget-icon-box text-bg-dark">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div class="flex-grow-1 overflow-hidden">
+                                                <h4 class="text-uppercase fs-13 mt-0">Recebidos</h4>
+                                                <h3 class="valor-recebido" style="font-size: 22px;">R$ 0,00</h3>
+                                                <h3 class="my-3" style="font-size: 17px;">A Receber <strong class="valor-areceber">R$ 0,00</strong></h3>
+                                                <a href="https://app.wingestor.com.br/conta-receber/create" class="btn w-100 btn-sm btn-light">NOVO RECEBIMENTO</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-lg-4 col-xl-4">
+                                <div class="card widget-icon-box text-bg-dark">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div class="flex-grow-1 overflow-hidden">
+                                                <h4 class="text-uppercase fs-13 mt-0">Pagos</h4>
+                                                <h3 class="valor-pago" style="font-size: 22px;">R$ 0,00</h3>
+                                                <h3 class="my-3" style="font-size: 17px;">A Pagar <strong class="valor-apagar">R$ 0,00</strong></h3>
+                                                <a href="https://app.wingestor.com.br/conta-pagar/create" class="btn w-100 btn-sm btn-light">NOVO PAGAMENTO</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                                <div class="row">
+                    <div class="col-lg-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Vendas</h5>
+                            </div>
+                            <div class="card-body">
+                                <h5>Total de vendas Maio R$ <strong>47.059,58</strong></h5>
+                                <p>Vendas meses anteriores.</p>
+                                                                <h6>Fevereiro: <strong class="text-success">R$ 70.340,50</strong></h6>
+                                                                <h6>Março: <strong class="text-success">R$ 80.312,93</strong></h6>
+                                                                <h6>Abril: <strong class="text-success">R$ 80.499,68</strong></h6>
+                                                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-9">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Grafico de vendas mensal (valores por dia)</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="grafico-vendas-mes" width="685" height="342" style="display: block; box-sizing: border-box; height: 342.7px; width: 685px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                                <div class="row">
+                    <div class="col-lg-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Compras</h5>
+                            </div>
+                            <div class="card-body">
+                                <h5>Total de compras Maio R$ <strong>18.239,55</strong></h5>
+                                <p>Vendas meses anteriores.</p>
+                                                                <h6>Abril: <strong class="text-success">R$ 17.949,00</strong></h6>
+                                                                <h6>Março: <strong class="text-success">R$ 31.916,88</strong></h6>
+                                                                <h6>Fevereiro: <strong class="text-success">R$ 22.022,50</strong></h6>
+                                                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-9">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Grafico de compras mensal (valores por dia)</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="grafico-compras-mes" width="685" height="342" style="display: block; box-sizing: border-box; height: 342.7px; width: 685px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                <div class="row">
+                                        <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Grafico de emissão mensal (quantidade emitida)</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="grafico-emissao-mes-contador" width="440" height="220" style="display: block; box-sizing: border-box; height: 220.2px; width: 440px;"></canvas>
+                            </div>
+                        </div>
+                        <hr>
+                    </div>
+                                                            <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Grafico de emissão últimos meses (valor mensal acumulado)</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="grafico-emissao-ult-meses" width="440" height="220" style="display: block; box-sizing: border-box; height: 220.2px; width: 440px;"></canvas>
+                            </div>
+                        </div>
+                        <hr>
+                    </div>
+                    
+                </div>
+
+                <div class="row">
+                                        <div class="col-xl-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="header-title mb-4">Contas a receber</h4>
+                                <div dir="ltr">
+
+                                    <canvas id="conta-receber" style="width: 440px; display: block; box-sizing: border-box; height: 220.2px;" data-colors="#4A4AFD, #B6D7A8, #B6D7A8" width="440" height="220"></canvas>
+                                </div>
+                            </div> <!-- end card body-->
+                        </div> <!-- end card -->
+                        <hr>
+                    </div><!-- end col-->
+                    
+                                        <div class="col-xl-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="header-title mb-4">Contas a pagar</h4>
+                                <div dir="ltr">
+
+                                    <canvas id="conta-pagar" data-colors="#4A4AFD, #B6D7A8, #B6D7A8" width="440" height="220" style="display: block; box-sizing: border-box; height: 220.2px; width: 440px;"></canvas>
+
+                                </div>
+                            </div> <!-- end card body-->
+                        </div> <!-- end card -->
+                        <hr>
+                    </div><!-- end col-->
+                                    </div>
+                <div class="row">
+                                                        </div>
+            </div>
+        </div>
+            </div>
+</div>
+
+
+                    </div>
+                </div>
+                <footer class="footer">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <script>
+                                    document.write(new Date().getFullYear())
+
+                                </script>2026 WinGestor+
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+
+                        <div class="control-loading">
+                <div class="modal-loading loading-class"></div>
+            </div>
+            
+            <div class="modal fade" id="modal-dev" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">DADOS DO DESENVOLVEDOR</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h4>Marcos Mello - Slym Software</h4>
+                            <a href="https://wa.me/5543920004769">WhatsApp <strong>43920004769</strong></a>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modal-empresas-contador" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">Selecionar Empresa</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Empresa</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modal-crm-notificacao" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">Notificações CRM</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modal-financeiro" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">Financeiro</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modal-alerta-certificado" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">Alerta de certificado</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modal-notificacao" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">Notificações</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modal-notificacao-delivery" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">Notificações de Delivery</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modal-notificacao-ecommerce" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">Notificações de Ecommerce</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script type="text/javascript">
+                let prot = window.location.protocol;
+                let host = window.location.host;
+                const path_url = prot + "//" + host + "/";
+
+            </script>
+            <script src="/assets/js/vendor.min.js"></script>
+            <script src="/assets/vendor/select2/js/select2.min.js"></script>
+            <script src="/assets/js/toastr.min.js"></script>
+            <script src="/assets/vendor/dropzone/dropzone.js"></script>
+            <script src="/assets/js/pages/component.fileupload.js"></script>
+            <script src="/assets/vendor/daterangepicker/moment.min.js"></script>
+            <script src="/assets/vendor/daterangepicker/daterangepicker.js"></script>
+            <script src="/assets/vendor/jquery-mask-plugin/jquery.mask.min.js"></script>
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.9/jquery.inputmask.min.js" integrity="sha512-F5Ul1uuyFlGnIT1dk2c4kB4DBdi5wnBJjVhL7gQlGh46Xn0VhvD8kgxLtjdZ5YN83gybk/aASUAlpdoWUjRR3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            <script src="/assets/vendor/admin-resources/jquery.vectormap/jquery-jvectormap-1.2.2.min.js"></script>
+            <script src="/assets/vendor/admin-resources/jquery.vectormap/maps/jquery-jvectormap-world-mill-en.js"></script>
+            <script src="/assets/vendor/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js"></script>
+            <script src="/assets/vendor/bootstrap-maxlength/bootstrap-maxlength.min.js"></script>
+
+            <script src="/js/jquery.bootstrap-duallistbox.min.js"></script>
+
+            <script type="text/javascript">
+                var casas_decimais_qtd = '2';
+            </script>
+
+                        <script src="/js/uploadImagem.js"></script>
+            <script type="text/javascript" src="/js/jquery.mask.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+            <script src="/assets/js/app.js"></script>
+            <script type="text/javascript" src="/js/main.js"></script>
+            <script src="/assets/vendor/flatpickr/flatpickr.min.js"></script>
+            <script src="/assets/js/pages/demo.flatpickr.js"></script>
+
+            
+            
+            
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="text/javascript">
+    $(function() {
+        setTimeout(() => {
+            buscaDadosGraficoMes()
+            buscaDadosGraficoMesContador()
+            buscaDadosUlitmosMeses()
+            contaReceber()
+            contaPagar()
+            buscaDadosGraficoMesCte()
+            buscaDadosGraficoMesMdfe()
+
+            dadosCards()
+            buscaDadosGraficoVendasMes()
+            buscaDadosGraficoComprasMes()
+            filtrarContas()
+        }, 10)
+    })
+
+    $(document).on("click", "#btn-filtrar-contas", function () {
+        filtrarContas()
+    });
+
+    function filtrarContas(){
+        let empresa_id = $('#empresa_id').val()
+
+        $.get(path_url + "api/graficos/cards-contas", {
+            empresa_id: empresa_id,
+            periodo_inicial: $('#periodo_inicial').val(),
+            periodo_final: $('#periodo_final').val(),
+        })
+        .done((data) => {
+            console.log(data)
+            let saldo = data.recebidas - data.pagas
+            $('.saldo-contas').text("R$ " + convertFloatToMoeda(saldo))
+
+            $('.valor-recebido').text("R$ " + convertFloatToMoeda(data.recebidas))
+            $('.valor-areceber').text("R$ " + convertFloatToMoeda(data.aReceber))
+
+            $('.valor-pago').text("R$ " + convertFloatToMoeda(data.pagas))
+            $('.valor-apagar').text("R$ " + convertFloatToMoeda(data.aPagar))
+
+            if(saldo > 0){
+             $('.saldo-contas').addClass('text-success') 
+         }else if(saldo < 0){
+             $('.saldo-contas').addClass('text-danger') 
+         }
+     })
+        .fail((err) => {
+            console.log(err)
+        })
+    }
+
+    $(document).on("change", "#inp-periodo", function () {
+        dadosCards()
+    })
+
+    $(document).on("change", "#inp-local_id", function () {
+        dadosCards()
+    })
+
+    function dadosCards(){
+        let periodo = $("#inp-periodo").val()
+        let local_id = $('#inp-local_id').val()
+        let empresa_id = $('#empresa_id').val()
+        let usuario_id = $('#usuario_id').val()
+
+        $.get(path_url + "api/graficos/dados-cards", {
+            empresa_id: empresa_id,
+            usuario_id: usuario_id,
+            periodo: periodo,
+            local_id: local_id
+        })
+        .done((success) => {
+
+            $('.total-clientes').text(success['clientes'])
+            $('.total-produtos').text(success['produtos'])
+            $('.total-vendas').text("R$ " + convertFloatToMoeda(success['vendas']))
+            $('.total-vendas-sem-pagar').text("R$ " + convertFloatToMoeda(success['vendas_sem_pagar']))
+            $('.total-compras').text("R$ " + convertFloatToMoeda(success['compras']))
+            $('.total-receber').text("R$ " + convertFloatToMoeda(success['contas_receber']))
+            $('.total-pagar').text("R$ " + convertFloatToMoeda(success['contas_pagar']))
+        })
+        .fail((err) => {
+            console.log(err)
+        })
+    }
+
+    function buscaDadosGraficoVendasMes() {
+        let empresa_id = $('#empresa_id').val()
+
+        $.get(path_url + "api/graficos/grafico-vendas-mes", {
+            empresa_id: empresa_id
+        })
+        .done((success) => {
+            iniciaGraficoVendasMes(success)
+        })
+        .fail((err) => {
+            console.log(err)
+        })
+    }
+
+    function buscaDadosGraficoComprasMes() {
+        let empresa_id = $('#empresa_id').val()
+
+        $.get(path_url + "api/graficos/grafico-compras-mes", {
+            empresa_id: empresa_id
+        })
+        .done((success) => {
+            iniciaGraficoComprasMes(success)
+        })
+        .fail((err) => {
+            console.log(err)
+        })
+    }
+
+    function buscaDadosGraficoMes() {
+        let empresa_id = $('#empresa_id').val()
+
+        $.get(path_url + "api/graficos/grafico-mes", {
+            empresa_id: empresa_id
+        })
+        .done((success) => {
+            iniciaGraficoMes(success)
+        })
+        .fail((err) => {
+            console.log(err)
+        })
+    }
+
+    function buscaDadosGraficoMesContador() {
+        let empresa_id = $('#empresa_id').val()
+
+        $.get(path_url + "api/graficos/grafico-mes-contador", {
+            empresa_id: empresa_id
+        })
+        .done((success) => {
+            iniciaGraficoMesContador(success)
+        })
+        .fail((err) => {
+            console.log(err)
+        })
+    }
+
+    function buscaDadosGraficoMesCte() {
+        let empresa_id = $('#empresa_id').val()
+
+        $.get(path_url + "api/graficos/grafico-mes-cte", {
+            empresa_id: empresa_id
+        })
+        .done((success) => {
+            iniciaGraficoMesCte(success)
+        })
+        .fail((err) => {
+            console.log(err)
+        })
+    }
+
+    function buscaDadosGraficoMesMdfe() {
+        let empresa_id = $('#empresa_id').val()
+
+        $.get(path_url + "api/graficos/grafico-mes-mdfe", {
+            empresa_id: empresa_id
+        })
+        .done((success) => {
+            iniciaGraficoMesMdfe(success)
+        })
+        .fail((err) => {
+            console.log(err)
+        })
+    }
+
+    function buscaDadosUlitmosMeses() {
+        let empresa_id = $('#empresa_id').val()
+
+        $.get(path_url + "api/graficos/grafico-ult-meses", {
+            empresa_id: empresa_id
+        })
+        .done((success) => {
+            iniciaGraficoUltMeses(success)
+        })
+        .fail((err) => {
+            console.log(err)
+        })
+    }
+
+    function contaReceber() {
+        let empresa_id = $('#empresa_id').val()
+
+        $.get(path_url + "api/graficos/grafico-conta-receber", {
+            empresa_id: empresa_id
+        })
+        .done((success) => {
+            contaReceberTotal(success)
+        })
+        .fail((err) => {
+            console.log(err)
+        })
+    }
+
+    function contaPagar() {
+        let empresa_id = $('#empresa_id').val()
+
+        $.get(path_url + "api/graficos/grafico-conta-pagar", {
+            empresa_id: empresa_id
+        })
+        .done((success) => {
+            contaPagarTotal(success)
+        })
+        .fail((err) => {
+            console.log(err)
+        })
+    }
+
+    function iniciaGraficoVendasMes(data) {
+        const ctx = document.getElementById('grafico-vendas-mes');
+        if(ctx){
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: montaLabels(data),
+                    datasets: [{
+                        label: 'total',
+                        data: montaValues(data),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function iniciaGraficoComprasMes(data) {
+        const ctx = document.getElementById('grafico-compras-mes');
+        if(ctx){
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: montaLabels(data),
+                    datasets: [{
+                        label: 'total',
+                        data: montaValues(data),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function iniciaGraficoMes(data) {
+        const ctx = document.getElementById('grafico-emissao-mes');
+        if(ctx){
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: montaLabels(data),
+                    datasets: [{
+                        label: 'emissão',
+                        data: montaValues(data),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function iniciaGraficoMesContador(data) {
+        const ctx = document.getElementById('grafico-emissao-mes-contador');
+        if(ctx){
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: montaLabels(data),
+                    datasets: [{
+                        label: 'emissão',
+                        data: montaValues(data),
+                        borderWidth: 1,
+                        borderColor: '#19AC65',
+                        backgroundColor: '#19AC65'
+                    }],
+
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function iniciaGraficoMesCte(data) {
+        const ctx = document.getElementById('grafico-emissao-mes-cte');
+        if(ctx){
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: montaLabels(data),
+                    datasets: [{
+                        label: 'emissão',
+                        data: montaValues(data),
+                        borderWidth: 1,
+                        borderColor: '#19AC65',
+                        backgroundColor: '#19AC65'
+                    }],
+
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function iniciaGraficoMesMdfe(data) {
+        const ctx = document.getElementById('grafico-emissao-mes-mdfe');
+        if(ctx){
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: montaLabels(data),
+                    datasets: [{
+                        label: 'emissão',
+                        data: montaValues(data),
+                        borderWidth: 1,
+                        borderColor: '#19AC65',
+                        backgroundColor: '#19AC65'
+                    }],
+
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function iniciaGraficoUltMeses(data) {
+        const ctx = document.getElementById('grafico-emissao-ult-meses');
+        if(ctx){
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: montaLabels(data),
+                    datasets: [{
+                        label: 'emissão',
+                        data: montaValues(data),
+                        borderWidth: 1,
+                        borderColor: '#FF6384',
+                        backgroundColor: '#FF6384'
+                    }],
+
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function montaLabels(data) {
+        let temp = []
+        data.map((x) => {
+            temp.push(x.dia)
+        })
+        return temp
+    }
+
+    function montaValues(data) {
+        let temp = []
+        data.map((x) => {
+            temp.push(x.valor)
+        })
+        return temp
+    }
+
+    function montaValuesPendente(data) {
+        let temp = []
+        data.map((x) => {
+            temp.push(x.valorPendente)
+        })
+        return temp
+    }
+
+    function montaValuesQuitado(data) {
+        let temp = []
+        data.map((x) => {
+            temp.push(x.valorQuitado)
+        })
+        return temp
+    }
+
+    function contaReceberTotal(data) {
+        var chartElement = document.getElementById('conta-receber');
+        if(chartElement){
+            var dataColors = chartElement.getAttribute('data-colors');
+            var colors = dataColors ? dataColors.split(",") : this.defaultColors
+            var ctx = chartElement.getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: montaLabels(data),
+                    datasets: [{
+                        label: 'Valor a Receber',
+                        data: montaValuesPendente(data),
+                        fill: '-1',
+                        backgroundColor: '#000000',
+                    }, 
+                    {
+                        label: 'Valor Recebido',
+                        data: montaValuesQuitado(data),
+                        fill: '-1',
+                        backgroundColor: '#6AA84F', 
+                    }, 
+                    {
+                        label: 'Total',
+                        data: montaValues(data),
+                        fill: '0',
+                        backgroundColor: '#1261A9',
+                    }]
+                }, 
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        filler: {
+                            propagate: true
+                        }, 
+                    }, 
+                    interaction: {
+                        intersect: true, 
+                    }
+                }
+            });
+        }
+    }
+
+    function contaPagarTotal(data) {
+        var chartElement = document.getElementById('conta-pagar');
+        if(chartElement){
+            var dataColors = chartElement.getAttribute('data-colors');
+            var colors = dataColors ? dataColors.split(",") : this.defaultColors
+            var ctx = chartElement.getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'line', 
+                data: {
+                    labels: montaLabels(data), 
+                    datasets: [{
+                        label: 'Valor a Pagar', 
+                        data: montaValuesPendente(data),
+                        fill: '-1', 
+                        backgroundColor: '#000000', 
+                    }, 
+                    {
+                        label: 'Valor Pago', 
+                        data: montaValuesQuitado(data),
+                        fill: '-1',
+                        backgroundColor: '#6AA84F', 
+                    }, 
+                    {
+                        label: 'Total', 
+                        data: montaValues(data),
+                        fill: '0',
+                        backgroundColor: '#1261A9',
+                    }]
+                }, 
+                options: {
+                    responsive: true, 
+                    maintainAspectRatio: true, 
+                    plugins: {
+                        filler: {
+                            propagate: true
+                        }, 
+                    }, 
+                    interaction: {
+                        intersect: true, 
+                    }
+
+                }, 
+            });
+        }
+    }
+</script>
+
+            <script type="text/javascript">
+                toastr.options = {
+                    "progressBar": true
+                    , "onclick": null
+                    , "showDuration": "300"
+                    , "hideDuration": "1000"
+                    , "timeOut": "10000"
+                    , "extendedTimeOut": "1000"
+                    , "showEasing": "swing"
+                    , "hideEasing": "linear"
+                    , "showMethod": "fadeIn"
+                    , "hideMethod": "fadeOut"
+                }
+
+                
+                                toastr.success('Bem vindo Bunny Dreams Ltda');
+                
+                
+                
+                
+                
+                
+                
+                $(html).attr('data-topbar-color', 'light')
+                $(html).attr('data-menu-color', 'dark')
+                $(html).attr('data-bs-theme', 'light')
+
+                window.addEventListener("load", () => {
+                    setTimeout(() => {
+                        document.querySelector(".loader").classList.add("loader--hidden")
+                    }, 100)
+                })
+
+                function audioError(){
+                    var audio = new Audio('/audio/error.mp3');
+                    audio.addEventListener('canplaythrough', function() {
+                        audio.play();
+                    });
+                }
+
+                $('#click-modal-dev').click(() => {
+                    const modal = new bootstrap.Modal(document.getElementById('modal-dev'))
+                    modal.show()
+                })
+
+                function modalCrmNotification(){
+                    $.get(path_url+'api/crm/modal', {empresa_id: $('#empresa_id').val()})
+                    .done((res) => {
+                        const modal = new bootstrap.Modal(document.getElementById('modal-crm-notificacao'))
+                        modal.show()
+                        $('#modal-crm-notificacao .modal-body').html(res)
+                    }).fail((err) => {
+                        console.log(err)
+                    })
+                }
+
+                function modalFinanceiro(){
+                    setTimeout(() => {
+                        $.get(path_url+'api/financeiro-boleto/modal', {empresa_id: $('#empresa_id').val()})
+                        .done((res) => {
+                            // console.log(res)
+                            const modal = new bootstrap.Modal(document.getElementById('modal-financeiro'))
+                            modal.show()
+                            $('#modal-financeiro .modal-body').html(res)
+                        }).fail((err) => {
+                            console.log(err)
+                        })
+                    }, 1000)
+                }
+
+                function modalAlertaCertificado(){
+                    setTimeout(() => {
+                        const modal = new bootstrap.Modal(document.getElementById('modal-alerta-certificado'))
+                        modal.show()
+                        $('#modal-alerta-certificado .modal-body').html('')
+                    }, 1000)
+                }
+            </script>
+
+            <script src="/bs5-tour/js/bs5-intro-tour.js"></script>
+            <script src="/js/tour.js"></script>
+        
+        
+</div><div id="toast-container" class="toast-top-right"><div class="toast toast-success" aria-live="polite" style="display: block;"><div class="toast-progress" style="width: 89.5%;"></div><div class="toast-message">Bem vindo Bunny Dreams Ltda</div></div></div><div class="modal-backdrop show"></div><div id="popover911380" class="popover popover-tour popover-tour-center bs-popover-auto fade show" role="tooltip" data-popper-placement="top" data-popper-escaped="" style="position: absolute; inset: auto auto 0px 0px; margin: 0px; transform: translate(390px, -2082px);"><div class="tour-exit"></div><h3 class="popover-header">Bem-vindo!</h3><div class="popover-body"><p>Esse é o seu primeiro acesso, um breve tour sobre o sistema.</p><ul class="tour-tab-links"><li><a role="button" class="active" data-tour-step="0">&nbsp;</a></li><li><a role="button" class="" data-tour-step="1">&nbsp;</a></li><li><a role="button" class="" data-tour-step="2">&nbsp;</a></li><li><a role="button" class="" data-tour-step="3">&nbsp;</a></li><li><a role="button" class="" data-tour-step="4">&nbsp;</a></li><li><a role="button" class="" data-tour-step="5">&nbsp;</a></li><li><a role="button" class="" data-tour-step="6">&nbsp;</a></li><li><a role="button" class="" data-tour-step="7">&nbsp;</a></li><li><a role="button" class="" data-tour-step="8">&nbsp;</a></li></ul></div><div class="popover-footer">   <a class="btn tour-prev hidden">Anterior   </a>   <a class="btn tour-next">Próximo   </a>   <a class="btn btn-primary tour-finish hidden">Finalizar   </a></div></div></body></html>

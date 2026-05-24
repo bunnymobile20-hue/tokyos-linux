@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Tokyo OS Session
+Comment=Sessão dedicada para o Tokyo OS Kiosk
+Exec=/home/tokio/TokiOS/scripts/start_tokyo_session.sh
+Type=Application

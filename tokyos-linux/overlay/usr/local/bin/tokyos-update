@@ -1,0 +1,123 @@
+#!/bin/sh
+# tokios-update — Sistema de atualização A/B do TokiOS Linux
+# Uso: tokios-update check   (verifica se há atualização)
+#       tokios-update apply  (aplica atualização e reinicia)
+#       tokios-update rollback (volta para partição anterior)
+
+set -e
+
+CONFIG=/etc/tokios/tokios.conf
+DATA_DIR=/mnt/data
+UPDATE_SOURCE=""
+UPDATE_VERSION=""
+CURRENT_VERSION=""
+
+# Carrega configuração
+[ -f "$CONFIG" ] && . "$CONFIG"
+
+# Detecta partição atual e standby
+detect_partitions() {
+    ROOT_DEV=$(findmnt -n -o SOURCE / 2>/dev/null || echo "")
+    case "$ROOT_DEV" in
+        */loop0) CURRENT_PART="A"; STANDBY_PART="B" ;;
+        */loop1) CURRENT_PART="B"; STANDBY_PART="A" ;;
+        *)       CURRENT_PART="A"; STANDBY_PART="A" ;;  # single partition
+    esac
+
+    # Procura dispositivos com label TOKIOS-SYS-A/B
+    for dev in /dev/sd* /dev/nvme* /dev/mmcblk*; do
+        label=$(blkid -s LABEL -o value "$dev" 2>/dev/null || echo "")
+        case "$label" in
+            TOKIOS-SYS-A) PART_A="$dev" ;;
+            TOKIOS-SYS-B) PART_B="$dev" ;;
+        esac
+    done
+}
+
+check() {
+    detect_partitions
+    echo "Partição atual: $CURRENT_PART ($ROOT_DEV)"
+
+    # Lê versão atual
+    if [ -f /etc/tokios/version ]; then
+        CURRENT_VERSION=$(cat /etc/tokios/version)
+        echo "Versão atual: $CURRENT_VERSION"
+    fi
+}
+
+apply() {
+    detect_partitions
+
+    # Verifica URL de update na config
+    if [ -z "$UPDATE_URL" ]; then
+        echo "ERRO: UPDATE_URL não configurado em $CONFIG"
+        exit 1
+    fi
+
+    UPDATE_FILE="/tmp/tokios-update.squashfs"
+    UPDATE_VERSION_FILE="/tmp/UPDATE_VERSION"
+
+    echo "Baixando atualização de $UPDATE_URL ..."
+    if command -v curl >/dev/null 2>&1; then
+        curl -sL -o "$UPDATE_FILE" "$UPDATE_URL" || {
+            echo "ERRO: falha ao baixar atualização"
+            exit 1
+        }
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q -O "$UPDATE_FILE" "$UPDATE_URL" || {
+            echo "ERRO: falha ao baixar atualização"
+            exit 1
+        }
+    else
+        echo "ERRO: nem curl nem wget disponíveis"
+        exit 1
+    fi
+
+    SYNC_PART=""
+    if [ "$CURRENT_PART" = "A" ] && [ -n "$PART_B" ]; then
+        SYNC_PART="$PART_B"
+    elif [ "$CURRENT_PART" = "B" ] && [ -n "$PART_A" ]; then
+        SYNC_PART="$PART_A"
+    fi
+
+    if [ -z "$SYNC_PART" ]; then
+        echo "ERRO: nenhuma partição standby encontrada"
+        exit 1
+    fi
+
+    echo "Escrevendo squashfs em $SYNC_PART ..."
+    dd if="$UPDATE_FILE" of="$SYNC_PART" bs=4M status=progress
+    sync
+
+    echo "Mudando boot para partição standby..."
+    # Seta flag de boot via kernel cmdline para próxima partição
+    NEXT_PART="${CURRENT_PART}"_NEXT="standby"
+    touch /mnt/data/opt/tokios/.next-boot-standby
+
+    echo "Atualização aplicada. Reiniciando em 3 segundos..."
+    sleep 3
+    reboot -f
+}
+
+rollback() {
+    detect_partitions
+    if [ "$CURRENT_PART" = "A" ] && [ -n "$PART_B" ]; then
+        echo "Forçando boot pela partição B..."
+        touch /mnt/data/opt/tokios/.next-boot-standby
+        reboot -f
+    elif [ "$CURRENT_PART" = "B" ] && [ -n "$PART_A" ]; then
+        echo "Forçando boot pela partição A..."
+        rm -f /mnt/data/opt/tokios/.next-boot-standby
+        reboot -f
+    else
+        echo "Rollback não disponível (apenas uma partição)"
+        exit 1
+    fi
+}
+
+case "${1:-help}" in
+    check)    check ;;
+    apply)    apply ;;
+    rollback) rollback ;;
+    *)        echo "uso: $0 {check|apply|rollback}" >&2; exit 1 ;;
+esac

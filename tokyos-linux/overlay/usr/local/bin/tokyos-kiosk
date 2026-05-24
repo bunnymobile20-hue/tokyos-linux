@@ -1,0 +1,191 @@
+#!/bin/sh
+# tokios-kiosk — Gerencia o navegador kiosk TokiOS (Wayland + X11)
+# Uso: tokios-kiosk {start|stop|restart|status}
+
+set -e
+
+PIDFILE=/run/tokios/kiosk.pid
+LOGFILE=/var/log/kiosk.log
+CONFIG=/etc/tokios/tokios.conf
+DASHBOARD_URL="${DASHBOARD_URL:-http://127.0.0.1:3001}"
+
+[ -f "$CONFIG" ] && . "$CONFIG"
+DISPLAY_SERVER="${DISPLAY_SERVER:-auto}"
+
+# Flags comuns do Chromium para kiosk
+COMMON_FLAGS="--kiosk --no-sandbox"
+COMMON_FLAGS="$COMMON_FLAGS --disable-infobars --disable-session-crashed-bubble"
+COMMON_FLAGS="$COMMON_FLAGS --disable-notifications --disable-extensions"
+COMMON_FLAGS="$COMMON_FLAGS --no-first-run --disable-features=TranslateUI"
+COMMON_FLAGS="$COMMON_FLAGS --touch-events=enabled"
+COMMON_FLAGS="$COMMON_FLAGS --simulate-outdated-no-au='9999-12-31'"
+COMMON_FLAGS="$COMMON_FLAGS --disable-background-networking --disable-sync"
+COMMON_FLAGS="$COMMON_FLAGS --noerrdialogs --mute-audio"
+
+# ============================================================
+# Detecta servidor de display disponível
+# ============================================================
+detect_display() {
+    case "$DISPLAY_SERVER" in
+        wayland) echo "wayland"; return ;;
+        x11)     echo "x11"; return ;;
+    esac
+
+    # auto: tenta wayland primeiro
+    if [ -n "$WAYLAND_DISPLAY" ] || [ -S "$XDG_RUNTIME_DIR/wayland-0" ] 2>/dev/null; then
+        echo "wayland"
+    elif [ -n "$DISPLAY" ]; then
+        echo "x11"
+    elif command -v weston >/dev/null 2>&1; then
+        echo "wayland"  # weston disponível para iniciar
+    else
+        echo "x11"  # fallback
+    fi
+}
+
+# ============================================================
+# Inicia compositor Wayland (weston) se necessário
+# ============================================================
+start_wayland() {
+    # Se já tem WAYLAND_DISPLAY, usa direto
+    if [ -n "$WAYLAND_DISPLAY" ] || [ -S "$XDG_RUNTIME_DIR/wayland-0" ] 2>/dev/null; then
+        echo "wayland: sessão já ativa ($WAYLAND_DISPLAY)"
+        return 0
+    fi
+
+    if ! command -v weston >/dev/null 2>&1; then
+        echo "wayland: weston não encontrado, pulando"
+        return 1
+    fi
+
+    echo "wayland: iniciando weston..."
+    weston --tty=1 --idle-time=0 --backend=drm-backend.so \
+        --socket=wayland-tokios \
+        >> "$LOGFILE" 2>&1 &
+    echo $! > /run/tokios/weston.pid
+
+    # Aguarda o socket wayland
+    for i in $(seq 1 10); do
+        if [ -S "$XDG_RUNTIME_DIR/wayland-tokios" ] 2>/dev/null; then
+            export WAYLAND_DISPLAY="wayland-tokios"
+            echo "wayland: weston pronto (socket wayland-tokios)"
+            return 0
+        fi
+        sleep 1
+    done
+    echo "wayland: weston não ficou pronto"
+    return 1
+}
+
+# ============================================================
+# Inicia X11 (Xorg + .xinitrc)
+# ============================================================
+start_x11() {
+    # Se já tem DISPLAY, usa direto
+    if [ -n "$DISPLAY" ]; then
+        echo "x11: sessão já ativa ($DISPLAY)"
+        return 0
+    fi
+
+    if ! command -v Xorg >/dev/null 2>&1; then
+        echo "x11: Xorg não encontrado"
+        return 1
+    fi
+
+    echo "x11: iniciando Xorg..."
+    Xorg :0 -logfile /var/log/xorg.log -config xorg-kiosk.conf vt1 &
+    echo $! > /run/tokios/xorg.pid
+
+    for i in $(seq 1 10); do
+        if [ -e /tmp/.X11-unix/X0 ]; then
+            export DISPLAY=:0
+            echo "x11: Xorg pronto (:0)"
+            return 0
+        fi
+        sleep 1
+    done
+    echo "x11: Xorg não ficou pronto"
+    return 1
+}
+
+# ============================================================
+# Inicia Chromium kiosk
+# ============================================================
+start_chromium() {
+    local display_type="$1"
+    local flags="$COMMON_FLAGS"
+
+    case "$display_type" in
+        wayland)
+            flags="$flags --enable-features=UseOzonePlatform --ozone-platform=wayland"
+            [ -n "$WAYLAND_DISPLAY" ] && export WAYLAND_DISPLAY
+            ;;
+        x11)
+            flags="$flags --ozone-platform=x11"
+            export DISPLAY="${DISPLAY:-:0}"
+            ;;
+    esac
+
+    echo "iniciando chromium ($display_type)..."
+    chromium $flags "$DASHBOARD_URL" >> "$LOGFILE" 2>&1 &
+    PID=$!
+    echo "$PID" > "$PIDFILE"
+    echo "kiosk iniciado (PID $PID, display=$display_type) — $DASHBOARD_URL"
+}
+
+# ============================================================
+# Comandos
+# ============================================================
+start() {
+    if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
+        echo "kiosk já está rodando (PID $(cat $PIDFILE))"
+        return 0
+    fi
+
+    if ! command -v chromium >/dev/null 2>&1; then
+        echo "ERRO: chromium não encontrado"
+        exit 1
+    fi
+
+    mkdir -p /run/tokios
+
+    local display_type
+    display_type=$(detect_display)
+    echo "display detectado: $display_type"
+
+    case "$display_type" in
+        wayland)
+            start_wayland || true
+            start_chromium "wayland"
+            ;;
+        x11)
+            start_x11 || true
+            start_chromium "x11"
+            ;;
+    esac
+}
+
+stop() {
+    pkill chromium 2>/dev/null || true
+    [ -f /run/tokios/weston.pid ] && kill $(cat /run/tokios/weston.pid) 2>/dev/null || true
+    [ -f /run/tokios/xorg.pid ] && kill $(cat /run/tokios/xorg.pid) 2>/dev/null || true
+    rm -f "$PIDFILE" /run/tokios/weston.pid /run/tokios/xorg.pid
+    echo "kiosk parado"
+}
+
+status() {
+    if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
+        echo "kiosk rodando (PID $(cat $PIDFILE)) — $DASHBOARD_URL"
+    else
+        echo "kiosk parado"
+        exit 1
+    fi
+}
+
+case "${1:-status}" in
+    start)   start ;;
+    stop)    stop ;;
+    restart) stop; sleep 1; start ;;
+    status)  status ;;
+    *)       echo "uso: $0 {start|stop|restart|status}" >&2; exit 1 ;;
+esac

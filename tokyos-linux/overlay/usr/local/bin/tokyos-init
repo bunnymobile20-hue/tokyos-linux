@@ -1,0 +1,246 @@
+#!/bin/sh
+# tokios-init — PID 1 do TokiOS Linux
+# Sistema minimalista kiosk: boot → backend → chromium tela cheia
+
+set -e
+
+PATH=/usr/local/bin:/usr/bin:/bin
+export PATH
+
+PROGNAME="$(basename "$0")"
+LOGFILE=/run/tokios/bootstrap.log
+CONFIG_DIR=/etc/tokios
+DATA_DIR=/mnt/data
+
+log() {
+    echo "[$(date +%H:%M:%S)] $PROGNAME: $*" >&2
+    echo "[$(date +%H:%M:%S)] $PROGNAME: $*" >> "$LOGFILE"
+}
+
+die() {
+    log "FATAL: $*"
+    echo "$*" > /run/tokios/fatal
+    # Reinicia em loop com backoff
+    sleep 10
+    reboot -f
+}
+
+# ============================================================
+# FASE 0 — Preparação inicial
+# ============================================================
+setup_early() {
+    mkdir -p /run/tokios /run/network
+
+    # Monta sistema de arquivos essenciais
+    mount -t proc none /proc 2>/dev/null || true
+    mount -t sysfs none /sys 2>/dev/null || true
+    mount -t tmpfs none /run 2>/dev/null || true
+
+    # Populate /dev via devtmpfs
+    mount -t devtmpfs none /dev 2>/dev/null || true
+    mkdir -p /dev/pts
+    mount -t devpts none /dev/pts 2>/dev/null || true
+
+    log "Fase 0: sistemas de arquivos montados"
+}
+
+# ============================================================
+# FASE 1 — Monta partição de dados persistente
+# ============================================================
+setup_data() {
+    # Procura partição DATA por label
+    DATA_DEV=""
+    for dev in /dev/sd* /dev/nvme* /dev/mmcblk*; do
+        label=$(blkid -s LABEL -o value "$dev" 2>/dev/null || echo "")
+        if [ "$label" = "TOKIOS-DATA" ]; then
+            DATA_DEV="$dev"
+            break
+        fi
+    done
+
+    if [ -n "$DATA_DEV" ]; then
+        mount "$DATA_DEV" "$DATA_DIR" || {
+            log "AVISO: falha ao montar $DATA_DEV em $DATA_DIR, usando tmpfs"
+            mount -t tmpfs -o size=512M tmpfs "$DATA_DIR"
+        }
+        log "Fase 1: DATA montada de $DATA_DEV"
+    else
+        log "Fase 1: nenhuma partição TOKIOS-DATA encontrada, usando tmpfs"
+        mount -t tmpfs -o size=512M tmpfs "$DATA_DIR"
+    fi
+
+    # Cria diretórios persistentes
+    mkdir -p "$DATA_DIR"/{var/{log,lib,tmp},etc/tokios,opt/tokios/data,root}
+
+    # Symlinks para persistência
+    ln -sfn "$DATA_DIR/var/log" /var/log
+    ln -sfn "$DATA_DIR/var/lib" /var/lib
+    ln -sfn "$DATA_DIR/var/tmp" /var/tmp
+    ln -sfn "$DATA_DIR/etc/tokios" /etc/tokios
+    ln -sfn "$DATA_DIR/opt/tokios/data" /opt/tokios/data
+    ln -sfn "$DATA_DIR/root" /root
+}
+
+# ============================================================
+# FASE 2 — Configuração de rede
+# ============================================================
+setup_network() {
+    log "Fase 2: iniciando rede..."
+
+    # Tenta dhcpcd primeiro
+    if command -v dhcpcd >/dev/null 2>&1; then
+        dhcpcd -q 2>/dev/null || dhcpcd 2>/dev/null &
+        sleep 3
+    fi
+
+    # Fallback: IP estático se configurado
+    if [ -f /etc/tokios/network.conf ]; then
+        . /etc/tokios/network.conf
+        if [ -n "$STATIC_IP" ]; then
+            ifconfig eth0 "$STATIC_IP" netmask "$NETMASK" up 2>/dev/null || true
+            route add default gw "$GATEWAY" 2>/dev/null || true
+        fi
+    fi
+
+    log "Rede configurada"
+}
+
+# ============================================================
+# FASE 3 — Gera/renova AUTHTOKEN
+# ============================================================
+setup_auth() {
+    TOKEN_FILE="$DATA_DIR/opt/tokios/AUTHTOKEN"
+    if [ ! -f "$TOKEN_FILE" ]; then
+        # Gera token SHA256 baseado em hash de hardware + data
+        MACHINE_ID=$(cat /etc/machine-id 2>/dev/null || echo "tokios-$(uname -n)-$(date +%Y%m)")
+        echo -n "$MACHINE_ID" | sha256sum | cut -d' ' -f1 > "$TOKEN_FILE"
+        chmod 600 "$TOKEN_FILE"
+        log "AUTHTOKEN gerado"
+    fi
+    export AUTHTOKEN=$(cat "$TOKEN_FILE")
+    log "AUTHTOKEN: ${AUTHTOKEN:0:8}..."
+}
+
+# ============================================================
+# FASE 4 — Sobe backend Node.js
+# ============================================================
+start_backend() {
+    log "Fase 4: iniciando backend TokiOS..."
+
+    BACKEND_DIR=/opt/tokios/backend
+    BACKEND_LOG="$DATA_DIR/var/log/backend.log"
+
+    if [ ! -d "$BACKEND_DIR" ]; then
+        log "AVISO: $BACKEND_DIR não encontrado, backend não iniciado"
+        return 1
+    fi
+
+    cd "$BACKEND_DIR"
+    export NODE_ENV=production
+    export PORT=3001
+    export AUTHTOKEN
+
+    # Usa o Node.js para subir o servidor
+    # O backend já está pré-compilado (dist/) no squashfs
+    if [ -f dist/server.js ]; then
+        node dist/server.js >> "$BACKEND_LOG" 2>&1 &
+        BACKEND_PID=$!
+        echo "$BACKEND_PID" > /run/tokios/backend.pid
+        log "Backend iniciado (PID $BACKEND_PID)"
+
+        # Aguarda backend ficar pronto
+        for i in $(seq 1 30); do
+            if curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:3001/api/system/hermes/status" 2>/dev/null | grep -q 200; then
+                log "Backend pronto após ${i}s"
+                return 0
+            fi
+            sleep 1
+        done
+        log "AVISO: backend não respondeu após 30s, continuando..."
+    else
+        log "AVISO: backend dist/server.js não encontrado"
+    fi
+}
+
+# ============================================================
+# FASE 5 — Sobe kiosk (Chromium tela cheia, Wayland ou X11)
+# ============================================================
+start_kiosk() {
+    log "Fase 5: iniciando kiosk..."
+
+    if ! command -v chromium >/dev/null 2>&1; then
+        log "AVISO: chromium não encontrado, pulando kiosk"
+        return 1
+    fi
+
+    # Delega para o script tokios-kiosk (que faz auto-detect Wayland/X11)
+    if [ -f /usr/local/bin/tokios-kiosk ]; then
+        /usr/local/bin/tokios-kiosk start >> "$DATA_DIR/var/log/kiosk.log" 2>&1
+        log "Kiosk iniciado via tokios-kiosk"
+    else
+        log "AVISO: tokios-kiosk não encontrado"
+    fi
+}
+
+# ============================================================
+# FASE 6 — Monitoramento / watchdog
+# ============================================================
+watchdog_loop() {
+    log "Fase 6: watchdog iniciado"
+
+    while true; do
+        # Verifica backend
+        if [ -f /run/tokios/backend.pid ]; then
+            BPID=$(cat /run/tokios/backend.pid)
+            if ! kill -0 "$BPID" 2>/dev/null; then
+                log "Backend morreu (PID $BPID), reiniciando..."
+                start_backend
+            fi
+        fi
+
+        # Verifica kiosk
+        if [ -f /run/tokios/kiosk.pid ]; then
+            KPID=$(cat /run/tokios/kiosk.pid)
+            if ! kill -0 "$KPID" 2>/dev/null; then
+                log "Kiosk morreu (PID $KPID), reiniciando..."
+                start_kiosk
+            fi
+        fi
+
+        sleep 10
+    done
+}
+
+# ============================================================
+# FASE 7 — Shutdown handler
+# ============================================================
+shutdown_handler() {
+    log "Sinal recebido, desligando..."
+
+    if [ -f /run/tokios/backend.pid ]; then
+        kill $(cat /run/tokios/backend.pid) 2>/dev/null || true
+    fi
+    if [ -f /run/tokios/kiosk.pid ]; then
+        kill $(cat /run/tokios/kiosk.pid) 2>/dev/null || true
+    fi
+
+    umount -a -r 2>/dev/null || true
+    poweroff -f
+}
+
+# ============================================================
+# MAIN
+# ============================================================
+setup_early
+setup_data
+setup_network
+setup_auth
+start_backend || true
+start_kiosk || true
+
+log "=== TokiOS Linux boot completo ==="
+
+# Trap signals for clean shutdown
+trap shutdown_handler INT TERM QUIT
+
+watchdog_loop

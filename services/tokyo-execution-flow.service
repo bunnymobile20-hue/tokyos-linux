@@ -1,0 +1,11 @@
+[Unit]
+Description=Tokyo OS Execution Flow Module
+After=network.target
+
+[Service]
+Type=oneshot
+User=tokio
+Group=tokio
+WorkingDirectory=/home/tokio/TokiOS
+ExecStart=/bin/echo "Tokyo OS Execution Flow: READY"
+RemainAfterExit=yes

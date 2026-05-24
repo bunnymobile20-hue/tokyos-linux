@@ -1,0 +1,114 @@
+#!/bin/sh
+# tokios-config — Configuração de fábrica / first-boot do TokiOS Linux
+# Executado na primeira inicialização ou quando resetado
+
+set -e
+
+DATA_DIR=/mnt/data
+CONFIG_DIR="$DATA_DIR/etc/tokios"
+CONFIG_FILE="$CONFIG_DIR/tokios.conf"
+
+log() {
+    echo "[tokios-config] $*" >&2
+}
+
+# ============================================================
+# Geração de identidade da máquina
+# ============================================================
+setup_identity() {
+    if [ -f "$CONFIG_DIR/machine-id" ]; then
+        log "machine-id já existe, pulando"
+        return
+    fi
+
+    # Gera ID único baseado em MAC address + data
+    MAC=$(cat /sys/class/net/eth0/address 2>/dev/null || cat /sys/class/net/wlan0/address 2>/dev/null || echo "00:00:00:00:00:00")
+    TIMESTAMP=$(date +%s)
+    echo -n "${MAC}-${TIMESTAMP}" | sha256sum | cut -d' ' -f1 > "$CONFIG_DIR/machine-id"
+    chmod 644 "$CONFIG_DIR/machine-id"
+    log "machine-id gerado"
+}
+
+# ============================================================
+# Configuração padrão tokios.conf
+# ============================================================
+setup_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        log "tokios.conf já existe, pulando"
+        return
+    fi
+
+    cat > "$CONFIG_FILE" << 'EOF'
+# TokiOS Linux — Configuração Principal
+
+# Dashboard URL (pode ser localhost ou servidor remoto)
+DASHBOARD_URL="http://127.0.0.1:5173"
+
+# Backend API
+BACKEND_PORT=3001
+
+# Rede (deixe vazio para DHCP)
+# STATIC_IP="192.168.1.100"
+# NETMASK="255.255.255.0"
+# GATEWAY="192.168.1.1"
+# DNS="8.8.8.8"
+
+# URL de atualização (opcional)
+# UPDATE_URL="https://updates.tokios.dev/latest.squashfs"
+
+# Nome do dispositivo (aparece no dashboard)
+DEVICE_NAME="TokiOS Terminal"
+EOF
+
+    chmod 644 "$CONFIG_FILE"
+    log "tokios.conf criado"
+}
+
+# ============================================================
+# Seed do banco de dados Hermes (se vazio)
+# ============================================================
+setup_hermes() {
+    HERMES_DB="$DATA_DIR/opt/tokios/data/hermes.db"
+    if [ -f "$HERMES_DB" ]; then
+        log "Hermes DB já existe, pulando"
+        return
+    fi
+
+    # O backend cria o DB automaticamente na primeira execução
+    log "Hermes DB será criado pelo backend no primeiro start"
+}
+
+# ============================================================
+# Configuração do dashboard (endereço do backend)
+# ============================================================
+setup_dashboard() {
+    DASHBOARD_CONFIG="$DATA_DIR/opt/tokios/data/env.json"
+    if [ -f "$DASHBOARD_CONFIG" ]; then
+        log "Dashboard config já existe, pulando"
+        return
+    fi
+
+    cat > "$DASHBOARD_CONFIG" << 'EOF'
+{
+    "VITE_API_URL": "http://127.0.0.1:3001",
+    "VITE_FRONTEND_PORT": 5173,
+    "VITE_KIOSK_MODE": true
+}
+EOF
+
+    log "Dashboard config criado"
+}
+
+# ============================================================
+# MAIN
+# ============================================================
+log "Iniciando configuração de fábrica..."
+
+mkdir -p "$CONFIG_DIR"
+setup_identity
+setup_config
+setup_hermes
+setup_dashboard
+
+log "Configuração de fábrica concluída"
+touch "$DATA_DIR/opt/tokios/.configured"

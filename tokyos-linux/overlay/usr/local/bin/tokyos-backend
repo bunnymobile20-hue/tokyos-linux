@@ -1,0 +1,63 @@
+#!/bin/sh
+# tokios-backend — Controla o backend Node.js TokiOS
+# Uso: tokios-backend {start|stop|restart|status}
+
+set -e
+
+BACKEND_DIR=/opt/tokios/backend
+PIDFILE=/run/tokios/backend.pid
+LOGFILE=/var/log/backend.log
+DATA_DIR=/mnt/data
+AUTHTOKEN_FILE="$DATA_DIR/opt/tokios/AUTHTOKEN"
+
+export NODE_ENV=production
+export PORT=3001
+[ -f "$AUTHTOKEN_FILE" ] && export AUTHTOKEN=$(cat "$AUTHTOKEN_FILE")
+
+start() {
+    if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
+        echo "backend já está rodando (PID $(cat $PIDFILE))"
+        return 0
+    fi
+
+    mkdir -p /run/tokios
+    cd "$BACKEND_DIR"
+
+    if [ ! -f dist/server.js ]; then
+        echo "ERRO: $BACKEND_DIR/dist/server.js não encontrado"
+        exit 1
+    fi
+
+    node dist/server.js >> "$LOGFILE" 2>&1 &
+    PID=$!
+    echo "$PID" > "$PIDFILE"
+    echo "backend iniciado (PID $PID)"
+}
+
+stop() {
+    if [ -f "$PIDFILE" ]; then
+        PID=$(cat "$PIDFILE")
+        kill "$PID" 2>/dev/null && echo "backend parado (PID $PID)" || echo "backend já não estava rodando"
+        rm -f "$PIDFILE"
+    else
+        echo "backend não está rodando"
+    fi
+}
+
+status() {
+    if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
+        echo "backend rodando (PID $(cat $PIDFILE))"
+        curl -s -w "\nHTTP %{http_code}" "http://127.0.0.1:3001/api/system/hermes/status" 2>/dev/null || echo "sem resposta HTTP"
+    else
+        echo "backend parado"
+        exit 1
+    fi
+}
+
+case "${1:-status}" in
+    start)   start ;;
+    stop)    stop ;;
+    restart) stop; sleep 1; start ;;
+    status)  status ;;
+    *)       echo "uso: $0 {start|stop|restart|status}" >&2; exit 1 ;;
+esac

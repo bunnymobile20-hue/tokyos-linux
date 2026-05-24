@@ -1,0 +1,52 @@
+{
+  "name": "backend",
+  "version": "1.36.3",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "tsx --test tests/**/*.test.ts",
+    "test:build": "tsc -p tsconfig.test.json",
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@bull-board/api": "^7.1.5",
+    "@bull-board/express": "^7.1.5",
+    "@types/http-proxy-middleware": "^0.19.3",
+    "bullmq": "^5.77.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-basic-auth": "^1.2.1",
+    "http-proxy-middleware": "^3.0.5",
+    "livekit-server-sdk": "^2.15.3",
+    "music-metadata": "^10.0.0",
+    "NeteaseCloudMusicApi": "^4.30.0",
+    "node-cron": "^4.2.1",
+    "rss-parser": "^3.13.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^6.0.1",
+    "systeminformation": "^5.31.5",
+    "uuid": "^9.0.1",
+    "winston": "^3.19.0",
+    "ws": "^8.20.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/uuid": "^9.0.8",
+    "@types/ws": "^8.18.1",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.1.4",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.2"
+  }
+}

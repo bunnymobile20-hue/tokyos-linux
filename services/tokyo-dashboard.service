@@ -1,0 +1,18 @@
+[Unit]
+Description=Tokyo OS Main Dashboard Orchestrator
+After=network.target
+
+[Service]
+Type=simple
+User=tokio
+Group=tokio
+WorkingDirectory=/home/tokio/TokiOS
+ExecStart=/bin/bash /home/tokio/TokiOS/scripts/start_tokyo.sh
+ExecStop=/bin/bash /home/tokio/TokiOS/scripts/stop_tokyo.sh
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/home/tokio/TokiOS/logs/startup.log
+StandardError=append:/home/tokio/TokiOS/logs/startup_errors.log
+
+[Install]
+WantedBy=multi-user.target

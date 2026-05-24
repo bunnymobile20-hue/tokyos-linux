@@ -1,0 +1,8 @@
+startup:
+  autostart_enabled: true
+  open_browser: true
+  kiosk_mode: true
+  run_healthcheck_on_start: true
+  start_ollama_check: true
+  safe_mode: false
+  dashboard_url: "http://localhost:5173"

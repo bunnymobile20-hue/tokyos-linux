@@ -1,0 +1,774 @@
+[
+  {
+    "text": "Bunny Dreams Ltda",
+    "href": "https://app.wingestor.com.br/home#"
+  },
+  {
+    "text": "Bunny Dreams Ltda",
+    "href": "https://app.wingestor.com.br/usuarios/profile/17"
+  },
+  {
+    "text": "Home",
+    "href": "https://app.wingestor.com.br/home"
+  },
+  {
+    "text": "Produtos",
+    "href": "https://app.wingestor.com.br/home#sidebarExtendedProd"
+  },
+  {
+    "text": "Categorias",
+    "href": "https://app.wingestor.com.br/categoria-produtos"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/produtos"
+  },
+  {
+    "text": "Novo Produto",
+    "href": "https://app.wingestor.com.br/produtos/create"
+  },
+  {
+    "text": "Estoque",
+    "href": "https://app.wingestor.com.br/estoque"
+  },
+  {
+    "text": "Invent\u00e1rio",
+    "href": "https://app.wingestor.com.br/inventarios"
+  },
+  {
+    "text": "Varia\u00e7\u00f5es",
+    "href": "https://app.wingestor.com.br/variacoes"
+  },
+  {
+    "text": "Lista de pre\u00e7os",
+    "href": "https://app.wingestor.com.br/lista-preco"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o Padr\u00e3o Fiscal",
+    "href": "https://app.wingestor.com.br/produtopadrao-tributacao"
+  },
+  {
+    "text": "Marcas",
+    "href": "https://app.wingestor.com.br/marcas"
+  },
+  {
+    "text": "Modelos de Etiqueta",
+    "href": "https://app.wingestor.com.br/modelo-etiquetas"
+  },
+  {
+    "text": "Consulta c\u00f3digo",
+    "href": "https://app.wingestor.com.br/produto-consulta-codigo"
+  },
+  {
+    "text": "Transfer\u00eancia de estoque",
+    "href": "https://app.wingestor.com.br/transferencia-estoque"
+  },
+  {
+    "text": "Unidades de medida",
+    "href": "https://app.wingestor.com.br/unidades-medida"
+  },
+  {
+    "text": "Categoria de Estorno",
+    "href": "https://app.wingestor.com.br/categoria-estorno"
+  },
+  {
+    "text": "Historico de Estorno",
+    "href": "https://app.wingestor.com.br/categoria-estorno-relatorio"
+  },
+  {
+    "text": "Atendimento",
+    "href": "https://app.wingestor.com.br/home#sidebarAtendimento"
+  },
+  {
+    "text": "Dias de Atendimento",
+    "href": "https://app.wingestor.com.br/atendimentos"
+  },
+  {
+    "text": "Interrup\u00e7\u00f5es",
+    "href": "https://app.wingestor.com.br/interrupcoes"
+  },
+  {
+    "text": "Hor\u00e1rio de Funcionamento",
+    "href": "https://app.wingestor.com.br/funcionamentos"
+  },
+  {
+    "text": "Servi\u00e7os",
+    "href": "https://app.wingestor.com.br/home#sidebarExtendedServ"
+  },
+  {
+    "text": "Categorias",
+    "href": "https://app.wingestor.com.br/categoria-servico"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/servicos"
+  },
+  {
+    "text": "Novo servi\u00e7o",
+    "href": "https://app.wingestor.com.br/servicos/create"
+  },
+  {
+    "text": "Ordem de Servi\u00e7o",
+    "href": "https://app.wingestor.com.br/home#sidebarOs"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/ordem-servico"
+  },
+  {
+    "text": "Nova OS",
+    "href": "https://app.wingestor.com.br/ordem-servico/create"
+  },
+  {
+    "text": "Metas",
+    "href": "https://app.wingestor.com.br/ordem-servico/metas"
+  },
+  {
+    "text": "Ordem de Produ\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/home#sidebarOrdemProducao"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/ordem-producao"
+  },
+  {
+    "text": "Nova Ordem",
+    "href": "https://app.wingestor.com.br/ordem-producao/create"
+  },
+  {
+    "text": "Agendamentos",
+    "href": "https://app.wingestor.com.br/home#sidebarAgendamentos"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/agendamentos"
+  },
+  {
+    "text": "Usu\u00e1rios",
+    "href": "https://app.wingestor.com.br/home#sidebarUsuarios"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/usuarios"
+  },
+  {
+    "text": "Controle de acesso",
+    "href": "https://app.wingestor.com.br/controle-acesso"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o fiscal",
+    "href": "https://app.wingestor.com.br/config-fiscal-usuario"
+  },
+  {
+    "text": "Pessoas",
+    "href": "https://app.wingestor.com.br/home#sidebarPessoas"
+  },
+  {
+    "text": "Clientes",
+    "href": "https://app.wingestor.com.br/clientes"
+  },
+  {
+    "text": "Fornecedores",
+    "href": "https://app.wingestor.com.br/fornecedores"
+  },
+  {
+    "text": "Transportadoras",
+    "href": "https://app.wingestor.com.br/transportadoras"
+  },
+  {
+    "text": "Gest\u00e3o Pessoal",
+    "href": "https://app.wingestor.com.br/home#sidebarGestaoPessoal"
+  },
+  {
+    "text": "Funcion\u00e1rios",
+    "href": "https://app.wingestor.com.br/funcionarios"
+  },
+  {
+    "text": "Eventos",
+    "href": "https://app.wingestor.com.br/evento-funcionarios"
+  },
+  {
+    "text": "Funcion\u00e1rios x Eventos",
+    "href": "https://app.wingestor.com.br/funcionario-eventos"
+  },
+  {
+    "text": "Apura\u00e7\u00e3o Mensal",
+    "href": "https://app.wingestor.com.br/apuracao-mensal"
+  },
+  {
+    "text": "Comiss\u00e3o por margem",
+    "href": "https://app.wingestor.com.br/comissao-margem"
+  },
+  {
+    "text": "Compras",
+    "href": "https://app.wingestor.com.br/home#sidebarCompra"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/compras"
+  },
+  {
+    "text": "Nova",
+    "href": "https://app.wingestor.com.br/compras/create"
+  },
+  {
+    "text": "Importar XML",
+    "href": "https://app.wingestor.com.br/compras-xml"
+  },
+  {
+    "text": "Manifesto",
+    "href": "https://app.wingestor.com.br/manifesto"
+  },
+  {
+    "text": "Cota\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/cotacoes"
+  },
+  {
+    "text": "Arquivos XML Emitidos",
+    "href": "https://app.wingestor.com.br/nfe-entrada-xml"
+  },
+  {
+    "text": "Arquivos XML Importados",
+    "href": "https://app.wingestor.com.br/nfe-importa-xml"
+  },
+  {
+    "text": "Rela\u00e7\u00e3o dados fornecedor",
+    "href": "https://app.wingestor.com.br/relacao-dados-fornecedor"
+  },
+  {
+    "text": "Devolu\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/home#sidebarDevolucao"
+  },
+  {
+    "text": "Lista",
+    "href": "https://app.wingestor.com.br/devolucao"
+  },
+  {
+    "text": "Nova devolu\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/devolucao-xml"
+  },
+  {
+    "text": "PDV",
+    "href": "https://app.wingestor.com.br/home#sidebarPDV"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/frontbox"
+  },
+  {
+    "text": "PDV",
+    "href": "https://app.wingestor.com.br/frontbox/create"
+  },
+  {
+    "text": "Trocas",
+    "href": "https://app.wingestor.com.br/trocas"
+  },
+  {
+    "text": "Categorias de Origem",
+    "href": "https://app.wingestor.com.br/categoria-origem"
+  },
+  {
+    "text": "Mesas/Comandas",
+    "href": "https://app.wingestor.com.br/frontbox-mesas"
+  },
+  {
+    "text": "Vendas",
+    "href": "https://app.wingestor.com.br/home#sidebarNfe"
+  },
+  {
+    "text": "Todas as Vendas",
+    "href": "https://app.wingestor.com.br/vendas"
+  },
+  {
+    "text": "Vendas pedido",
+    "href": "https://app.wingestor.com.br/nfe"
+  },
+  {
+    "text": "Nova",
+    "href": "https://app.wingestor.com.br/nfe/create"
+  },
+  {
+    "text": "Inutilizar NFe",
+    "href": "https://app.wingestor.com.br/nfe-inutilizar"
+  },
+  {
+    "text": "Or\u00e7amentos",
+    "href": "https://app.wingestor.com.br/orcamentos"
+  },
+  {
+    "text": "Arquivos XML",
+    "href": "https://app.wingestor.com.br/nfe-xml"
+  },
+  {
+    "text": "Importar XML",
+    "href": "https://app.wingestor.com.br/nfe-import-zip"
+  },
+  {
+    "text": "Metas",
+    "href": "https://app.wingestor.com.br/nfe-metas"
+  },
+  {
+    "text": "Financeiro",
+    "href": "https://app.wingestor.com.br/home#sidebarPagar"
+  },
+  {
+    "text": "Caixa",
+    "href": "https://app.wingestor.com.br/home#caixa"
+  },
+  {
+    "text": "Movimenta\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/caixa"
+  },
+  {
+    "text": "Abrir caixa",
+    "href": "https://app.wingestor.com.br/caixa/create"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/caixa/list"
+  },
+  {
+    "text": "Contas a pagar",
+    "href": "https://app.wingestor.com.br/home#pagar"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/conta-pagar"
+  },
+  {
+    "text": "Nova conta",
+    "href": "https://app.wingestor.com.br/conta-pagar/create"
+  },
+  {
+    "text": "Contas a receber",
+    "href": "https://app.wingestor.com.br/home#receber"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/conta-receber"
+  },
+  {
+    "text": "Nova conta",
+    "href": "https://app.wingestor.com.br/conta-receber/create"
+  },
+  {
+    "text": "Categorias de conta",
+    "href": "https://app.wingestor.com.br/categoria-conta"
+  },
+  {
+    "text": "Relat\u00f3rios",
+    "href": "https://app.wingestor.com.br/relatorios"
+  },
+  {
+    "text": "Taxas de pagamento",
+    "href": "https://app.wingestor.com.br/taxa-cartao"
+  },
+  {
+    "text": "Plano de contas",
+    "href": "https://app.wingestor.com.br/plano-contas"
+  },
+  {
+    "text": "Contas da empresa",
+    "href": "https://app.wingestor.com.br/contas-empresa"
+  },
+  {
+    "text": "Contas para boleto",
+    "href": "https://app.wingestor.com.br/contas-boleto"
+  },
+  {
+    "text": "Boletos",
+    "href": "https://app.wingestor.com.br/boletos"
+  },
+  {
+    "text": "NFCe",
+    "href": "https://app.wingestor.com.br/home#sidebarNfce"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/nfce"
+  },
+  {
+    "text": "Nova",
+    "href": "https://app.wingestor.com.br/nfce/create"
+  },
+  {
+    "text": "Inutilizar",
+    "href": "https://app.wingestor.com.br/nfce-inutilizar"
+  },
+  {
+    "text": "Arquivos XML",
+    "href": "https://app.wingestor.com.br/nfce-xml"
+  },
+  {
+    "text": "Importar XML",
+    "href": "https://app.wingestor.com.br/nfce-import-zip"
+  },
+  {
+    "text": "Envio Contig\u00eancia",
+    "href": "https://app.wingestor.com.br/nfce-contigencia"
+  },
+  {
+    "text": "Pr\u00e9 Venda",
+    "href": "https://app.wingestor.com.br/home#sidebarPreVenda"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/pre-venda"
+  },
+  {
+    "text": "Nova",
+    "href": "https://app.wingestor.com.br/pre-venda/create"
+  },
+  {
+    "text": "Card\u00e1pio",
+    "href": "https://app.wingestor.com.br/home#sidebarCardapio"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/config-cardapio"
+  },
+  {
+    "text": "Categorias",
+    "href": "https://app.wingestor.com.br/produtos-cardapio-categorias"
+  },
+  {
+    "text": "Produtos",
+    "href": "https://app.wingestor.com.br/produtos-cardapio"
+  },
+  {
+    "text": "Categorias de adicional",
+    "href": "https://app.wingestor.com.br/categoria-adicional"
+  },
+  {
+    "text": "Adicionais",
+    "href": "https://app.wingestor.com.br/adicionais"
+  },
+  {
+    "text": "Comandas",
+    "href": "https://app.wingestor.com.br/pedidos-cardapio"
+  },
+  {
+    "text": "Cadastrar mesas",
+    "href": "https://app.wingestor.com.br/mesas"
+  },
+  {
+    "text": "Controle de pedidos",
+    "href": "https://app.wingestor.com.br/pedido-cozinha"
+  },
+  {
+    "text": "Controle de impress\u00e3o",
+    "href": "https://app.wingestor.com.br/impressao-pedido"
+  },
+  {
+    "text": "Carrossel destaque",
+    "href": "https://app.wingestor.com.br/carrossel"
+  },
+  {
+    "text": "Avalia\u00e7\u00f5es",
+    "href": "https://app.wingestor.com.br/avaliacao-cardapio"
+  },
+  {
+    "text": "Tamanhos de pizza",
+    "href": "https://app.wingestor.com.br/tamanhos-pizza"
+  },
+  {
+    "text": "Atendimentos gar\u00e7om",
+    "href": "https://app.wingestor.com.br/atendimento-garcom"
+  },
+  {
+    "text": "Hist\u00f3rico",
+    "href": "https://app.wingestor.com.br/pedidos-cardapio-historico"
+  },
+  {
+    "text": "Planejamento de Custos",
+    "href": "https://app.wingestor.com.br/home#sidebarPlanejamentoCustos"
+  },
+  {
+    "text": "Projetos",
+    "href": "https://app.wingestor.com.br/projeto-custo"
+  },
+  {
+    "text": "Planejamentos",
+    "href": "https://app.wingestor.com.br/planejamento-custo"
+  },
+  {
+    "text": "Controle de Fretes",
+    "href": "https://app.wingestor.com.br/home#sidebarControleFrete"
+  },
+  {
+    "text": "Tipos de despesa de frete",
+    "href": "https://app.wingestor.com.br/tipo-despesa-frete"
+  },
+  {
+    "text": "Fretes",
+    "href": "https://app.wingestor.com.br/fretes"
+  },
+  {
+    "text": "Manuten\u00e7\u00e3o de ve\u00edculos",
+    "href": "https://app.wingestor.com.br/manutencao-veiculos"
+  },
+  {
+    "text": "Ecommerce",
+    "href": "https://app.wingestor.com.br/home#sidebarEcommerce"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/config-ecommerce"
+  },
+  {
+    "text": "Categorias de produtos",
+    "href": "https://app.wingestor.com.br/produtos-ecommerce-categorias"
+  },
+  {
+    "text": "Produtos",
+    "href": "https://app.wingestor.com.br/produtos-ecommerce"
+  },
+  {
+    "text": "Pedidos",
+    "href": "https://app.wingestor.com.br/pedidos-ecommerce"
+  },
+  {
+    "text": "Ver site",
+    "href": "https://app.wingestor.com.br/config-ecommerce-site"
+  },
+  {
+    "text": "Mercado Livre",
+    "href": "https://app.wingestor.com.br/home#sidebarMercadoLivre"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/mercado-livre-config"
+  },
+  {
+    "text": "Produtos",
+    "href": "https://app.wingestor.com.br/mercado-livre-produtos-news"
+  },
+  {
+    "text": "Perguntas",
+    "href": "https://app.wingestor.com.br/mercado-livre-perguntas"
+  },
+  {
+    "text": "Pedidos",
+    "href": "https://app.wingestor.com.br/mercado-livre-pedidos"
+  },
+  {
+    "text": "Delivery/Marketplace",
+    "href": "https://app.wingestor.com.br/home#sidebarMarketPlace"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/config-marketplace"
+  },
+  {
+    "text": "Pedidos",
+    "href": "https://app.wingestor.com.br/pedidos-delivery"
+  },
+  {
+    "text": "Categorias de produto",
+    "href": "https://app.wingestor.com.br/produtos-delivery-categorias"
+  },
+  {
+    "text": "Categorias de servi\u00e7o",
+    "href": "https://app.wingestor.com.br/categoria-servico-marketplace"
+  },
+  {
+    "text": "Produtos",
+    "href": "https://app.wingestor.com.br/produtos-delivery"
+  },
+  {
+    "text": "Servi\u00e7os",
+    "href": "https://app.wingestor.com.br/servicos-marketplace"
+  },
+  {
+    "text": "Funcionamento",
+    "href": "https://app.wingestor.com.br/funcionamento-delivery"
+  },
+  {
+    "text": "Bairros",
+    "href": "https://app.wingestor.com.br/bairros-empresa"
+  },
+  {
+    "text": "Frete",
+    "href": "https://app.wingestor.com.br/frete-empresa"
+  },
+  {
+    "text": "Categorias de adicional",
+    "href": "https://app.wingestor.com.br/categoria-adicional"
+  },
+  {
+    "text": "Adicionais",
+    "href": "https://app.wingestor.com.br/adicionais"
+  },
+  {
+    "text": "Destaques",
+    "href": "https://app.wingestor.com.br/destaque-marketplace"
+  },
+  {
+    "text": "Cupom de desconto",
+    "href": "https://app.wingestor.com.br/cupom-desconto"
+  },
+  {
+    "text": "Tamanhos de pizza",
+    "href": "https://app.wingestor.com.br/tamanhos-pizza"
+  },
+  {
+    "text": "Motoboys",
+    "href": "https://app.wingestor.com.br/motoboys"
+  },
+  {
+    "text": "Controle de pedidos",
+    "href": "https://app.wingestor.com.br/pedido-cozinha"
+  },
+  {
+    "text": "Controle de impress\u00e3o",
+    "href": "https://app.wingestor.com.br/impressao-pedido"
+  },
+  {
+    "text": "Clientes",
+    "href": "https://app.wingestor.com.br/clientes-delivery"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o de agendamento",
+    "href": "https://app.wingestor.com.br/config-agendamento"
+  },
+  {
+    "text": "Ver loja",
+    "href": "https://app.wingestor.com.br/config-marketplace-loja"
+  },
+  {
+    "text": "Localiza\u00e7\u00f5es",
+    "href": "https://app.wingestor.com.br/home#sidebarLocalizacao"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/localizacao"
+  },
+  {
+    "text": "Reservas",
+    "href": "https://app.wingestor.com.br/home#sidebarReservas"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/config-reserva"
+  },
+  {
+    "text": "Categorias de acomoda\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/categoria-acomodacao"
+  },
+  {
+    "text": "Acomoda\u00e7\u00f5es",
+    "href": "https://app.wingestor.com.br/acomodacao"
+  },
+  {
+    "text": "Frigobares",
+    "href": "https://app.wingestor.com.br/frigobar"
+  },
+  {
+    "text": "Reservas",
+    "href": "https://app.wingestor.com.br/reservas"
+  },
+  {
+    "text": "Produtos",
+    "href": "https://app.wingestor.com.br/produtos-reserva"
+  },
+  {
+    "text": "CRM",
+    "href": "https://app.wingestor.com.br/home#sidebarCrm"
+  },
+  {
+    "text": "Listar",
+    "href": "https://app.wingestor.com.br/crm"
+  },
+  {
+    "text": "Sped",
+    "href": "https://app.wingestor.com.br/home#sidebarSped"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/sped-config"
+  },
+  {
+    "text": "Arquivo",
+    "href": "https://app.wingestor.com.br/sped"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/home#sidebarConfig"
+  },
+  {
+    "text": "Emitente",
+    "href": "https://app.wingestor.com.br/config"
+  },
+  {
+    "text": "Natureza de opera\u00e7\u00e3o",
+    "href": "https://app.wingestor.com.br/natureza-operacao"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o de email",
+    "href": "https://app.wingestor.com.br/email-config"
+  },
+  {
+    "text": "Escrit\u00f3rio cont\u00e1bil",
+    "href": "https://app.wingestor.com.br/escritorio-contabil"
+  },
+  {
+    "text": "Geral",
+    "href": "https://app.wingestor.com.br/config-geral/create"
+  },
+  {
+    "text": "Op. Interestadual - Difal",
+    "href": "https://app.wingestor.com.br/difal"
+  },
+  {
+    "text": "CashBack",
+    "href": "https://app.wingestor.com.br/cash-back-config"
+  },
+  {
+    "text": "Contig\u00eancia",
+    "href": "https://app.wingestor.com.br/contigencia"
+  },
+  {
+    "text": "TEF",
+    "href": "https://app.wingestor.com.br/tef-config"
+  },
+  {
+    "text": "API",
+    "href": "https://app.wingestor.com.br/config-api"
+  },
+  {
+    "text": "Sintegra",
+    "href": "https://app.wingestor.com.br/sintegra"
+  },
+  {
+    "text": "Configura\u00e7\u00e3o de metas",
+    "href": "https://app.wingestor.com.br/metas"
+  },
+  {
+    "text": "Impressoras de pedido",
+    "href": "https://app.wingestor.com.br/impressoras-pedido"
+  },
+  {
+    "text": "NOVO RECEBIMENTO",
+    "href": "https://app.wingestor.com.br/conta-receber/create"
+  },
+  {
+    "text": "NOVO PAGAMENTO",
+    "href": "https://app.wingestor.com.br/conta-pagar/create"
+  },
+  {
+    "text": "WhatsApp 43920004769",
+    "href": "https://wa.me/5543920004769"
+  },
+  {
+    "text": "Anterior",
+    "href": ""
+  },
+  {
+    "text": "Pr\u00f3ximo",
+    "href": ""
+  },
+  {
+    "text": "Finalizar",
+    "href": ""
+  }
+]

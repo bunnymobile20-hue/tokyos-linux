@@ -1,0 +1,392 @@
+import { withBasePath } from '../../lib/basePath'
+import { frontendLog } from '../../lib/logger'
+
+import type {
+  AutoReportNotification,
+  DataAgentConfigStore,
+  DataCollectionResponse,
+  ExpertAnalysisResponse,
+  IntradayAlert,
+  IntradayMonitorStatus,
+  LLMExtractionAgentId,
+  MonthlyReport,
+  StockAnalysisAIConfigWithPool,
+  StockAnalysisAIProvider,
+  StockAnalysisDailyRunResult,
+  StockAnalysisHealthStatus,
+  StockAnalysisModelTestResult,
+  StockAnalysisOverview,
+  StockAnalysisPosition,
+  StockAnalysisPostMarketResult,
+  StockAnalysisSignal,
+  StockAnalysisStrategyConfig,
+  StockAnalysisTradeRecord,
+  StockAnalysisWatchLogEntry,
+  StockSearchResult,
+  UserWatchlistItem,
+  WatchlistResponse,
+} from './types'
+
+async function requestJson<T>(input: string, init?: RequestInit): Promise<T> {
+  const startMs = performance.now()
+  const method = init?.method || 'GET'
+  let response: Response
+
+  try {
+    response = await fetch(withBasePath(input), init)
+  } catch (error) {
+    const elapsedMs = Math.round(performance.now() - startMs)
+    const msg = error instanceof Error ? error.message : 'Erro de rede desconhecido'
+    frontendLog.error('AIQuant.api', `${method} ${input} erro de rede ${elapsedMs}ms: ${msg}`)
+    throw error
+  }
+
+  const elapsedMs = Math.round(performance.now() - startMs)
+
+  // [H6] examinar content-type Analise novamente JSON，evitar 502/503 HTML resposta resulta em SyntaxError
+  const contentType = response.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
+    if (!response.ok) {
+      const errMsg = `Erro no servidor (HTTP ${response.status}): ${response.statusText || 'Verifique se o serviço de back-end está funcionando normalmente'}`
+      frontendLog.error('AIQuant.api', `${method} ${input} ${response.status} ${elapsedMs}ms: ${errMsg}`)
+      throw new Error(errMsg)
+    }
+    const errMsg = `O servidor retornou um não- JSON resposta (${contentType || 'tipo desconhecido'})`
+    frontendLog.error('AIQuant.api', `${method} ${input} ${response.status} ${elapsedMs}ms: ${errMsg}`)
+    throw new Error(errMsg)
+  }
+
+  const json = await response.json()
+  if (!json.success) {
+    const errMsg = json.error || 'Falha na solicitação'
+    frontendLog.warn('AIQuant.api', `${method} ${input} ${response.status} ${elapsedMs}ms: erro de negócios - ${errMsg}`)
+    throw new Error(errMsg)
+  }
+
+  frontendLog.debug('AIQuant.api', `${method} ${input} ${response.status} ${elapsedMs}ms`)
+  return json.data as T
+}
+
+export function bootstrapStockAnalysis() {
+  return requestJson<void>('/api/system/stock-analysis/bootstrap', { method: 'POST' })
+}
+
+export function fetchStockAnalysisOverview() {
+  return requestJson<StockAnalysisOverview>('/api/system/stock-analysis/overview')
+}
+
+export function fetchTradingStatus() {
+  return requestJson<{ canTrade: boolean; reason: string | null }>('/api/system/stock-analysis/trading-status')
+}
+
+export function fetchStockAnalysisHealth() {
+  return requestJson<StockAnalysisHealthStatus>('/api/system/stock-analysis/health')
+}
+
+export function fetchStockAnalysisConfig() {
+  return requestJson<StockAnalysisStrategyConfig>('/api/system/stock-analysis/config')
+}
+
+export function saveStockAnalysisConfig(config: {
+  intradayAutoCloseLossPercent: number
+  intradayAutoCloseProfitPercent: number
+  portfolioRiskLimits: {
+    maxDailyLossPercent: number
+    maxWeeklyLossPercent: number
+    maxMonthlyLossPercent: number
+  }
+}) {
+  return requestJson<StockAnalysisStrategyConfig>('/api/system/stock-analysis/config', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config),
+  })
+}
+
+export function fetchStockAnalysisSignals() {
+  return requestJson<StockAnalysisSignal[]>('/api/system/stock-analysis/signals')
+}
+
+export function fetchStockAnalysisPositions() {
+  return requestJson<StockAnalysisPosition[]>('/api/system/stock-analysis/positions')
+}
+
+export function fetchStockAnalysisTrades() {
+  return requestJson<StockAnalysisTradeRecord[]>('/api/system/stock-analysis/trades')
+}
+
+export function fetchStockAnalysisWatchLogs() {
+  return requestJson<StockAnalysisWatchLogEntry[]>('/api/system/stock-analysis/watch-logs')
+}
+
+export function runStockAnalysisDaily() {
+  return requestJson<StockAnalysisDailyRunResult>('/api/system/stock-analysis/run/daily', { method: 'POST' })
+}
+
+export function refreshStockAnalysisStockPool() {
+  return requestJson<{ count: number }>('/api/system/stock-analysis/stock-pool/refresh', { method: 'POST' })
+}
+
+export function confirmStockAnalysisSignal(signalId: string, payload: { quantity?: number; weight?: number; price?: number; note?: string }) {
+  return requestJson<StockAnalysisPosition | { confirmed: true; position: null }>(`/api/system/stock-analysis/signals/${signalId}/confirm`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+}
+
+export function rejectStockAnalysisSignal(signalId: string, note: string) {
+  return requestJson<StockAnalysisSignal>(`/api/system/stock-analysis/signals/${signalId}/reject`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ note }),
+  })
+}
+
+export function ignoreStockAnalysisSignal(signalId: string, note: string) {
+  return requestJson<StockAnalysisSignal>(`/api/system/stock-analysis/signals/${signalId}/ignore`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ note }),
+  })
+}
+
+export interface AutoExecuteResult {
+  tradeDate: string
+  totalSignals: number
+  autoBoughtCount: number
+  autoIgnoredCount: number
+  skippedCount: number
+  autoBought: Array<{ code: string; name: string; weight: number; price: number }>
+  autoIgnored: Array<{ code: string; name: string; action: string }>
+  skipped: Array<{ code: string; name: string; reason: string }>
+}
+
+/** Execução automática com um clique：Forte sinal de compra hoje, compre automaticamente，comprar/Espere e veja os sinais são automaticamente ignorados */
+export function autoExecuteDailyStrategy(tradeDate?: string) {
+  return requestJson<AutoExecuteResult>('/api/system/stock-analysis/auto-execute', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(tradeDate ? { tradeDate } : {}),
+  })
+}
+
+// v1.35.0 [A4-P0-2] Geração front-end clientNonce（uuid-like），Impedir novas tentativas de rede / Clique duas vezes para causar deduções repetidas
+function generateClientNonce(): string {
+  // prioridade crypto.randomUUID，Voltar para o carimbo de data/hora+aleatório
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`
+}
+
+export function closeStockAnalysisPosition(positionId: string, payload: { price?: number; note?: string } = {}) {
+  return requestJson<StockAnalysisTradeRecord>(`/api/system/stock-analysis/positions/${positionId}/close`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    // v1.35.0 [A4-P0-2] Vem automaticamente clientNonce
+    body: JSON.stringify({ ...payload, clientNonce: generateClientNonce() }),
+  })
+}
+
+export function reduceStockAnalysisPosition(positionId: string, payload: { weightDelta: number; price?: number; note?: string }) {
+  return requestJson<StockAnalysisTradeRecord>(`/api/system/stock-analysis/positions/${positionId}/reduce`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    // v1.35.0 [A4-P0-2] Vem automaticamente clientNonce
+    body: JSON.stringify({ ...payload, clientNonce: generateClientNonce() }),
+  })
+}
+
+export function dismissPositionAction(positionId: string, note?: string) {
+  return requestJson<StockAnalysisPosition>(`/api/system/stock-analysis/positions/${positionId}/dismiss-action`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ note }),
+  })
+}
+
+// ── AI Config API ──────────────────────────────────────────
+
+export function fetchStockAnalysisAIConfig() {
+  return requestJson<StockAnalysisAIConfigWithPool>('/api/system/stock-analysis/ai-config')
+}
+
+export function saveStockAnalysisAIProviders(providers: StockAnalysisAIProvider[]) {
+  return requestJson<StockAnalysisAIConfigWithPool>('/api/system/stock-analysis/ai-config/providers', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ providers }),
+  })
+}
+
+export function assignModelToLayer(layer: string, modelRef: { providerId: string; providerName: string; modelId: string; displayName: string } | null) {
+  return requestJson<StockAnalysisAIConfigWithPool>(`/api/system/stock-analysis/ai-config/layers/${layer}/assign`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ modelRef }),
+  })
+}
+
+export function assignModelToExpert(expertId: string, modelRef: { providerId: string; providerName: string; modelId: string; displayName: string } | null) {
+  return requestJson<StockAnalysisAIConfigWithPool>(`/api/system/stock-analysis/ai-config/experts/${expertId}/assign`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ modelRef }),
+  })
+}
+
+export function assignModelToExtractionAgent(agentId: LLMExtractionAgentId, modelRef: { providerId: string; providerName: string; modelId: string; displayName: string } | null) {
+  return requestJson<StockAnalysisAIConfigWithPool>(`/api/system/stock-analysis/ai-config/extraction-agents/${agentId}/assign`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ modelRef }),
+  })
+}
+
+export function testModelConnectivity(providerId: string, baseUrl: string, apiKey: string, modelId: string) {
+  return requestJson<StockAnalysisModelTestResult>('/api/system/stock-analysis/ai-config/test-model', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ providerId, baseUrl, apiKey, modelId }),
+  })
+}
+
+export function updateExpertSystemPrompt(expertId: string, systemPrompt: string) {
+  return requestJson<StockAnalysisAIConfigWithPool>(`/api/system/stock-analysis/ai-config/experts/${expertId}/system-prompt`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ systemPrompt }),
+  })
+}
+
+// ── notificar + Relatório API ──────────────────────────────────────────
+
+export function fetchStockAnalysisNotifications() {
+  return requestJson<AutoReportNotification[]>('/api/system/stock-analysis/notifications')
+}
+
+export function acknowledgeNotification(notificationId: string) {
+  return requestJson<AutoReportNotification>(`/api/system/stock-analysis/notifications/${notificationId}/acknowledge`, {
+    method: 'POST',
+  })
+}
+
+export function fetchMonthlyReports() {
+  return requestJson<MonthlyReport[]>('/api/system/stock-analysis/monthly-reports')
+}
+
+export function generateWeeklyReport() {
+  return requestJson<AutoReportNotification>('/api/system/stock-analysis/reports/generate-weekly', {
+    method: 'POST',
+  })
+}
+
+export function generateMonthlyReport() {
+  return requestJson<AutoReportNotification>('/api/system/stock-analysis/reports/generate-monthly', {
+    method: 'POST',
+  })
+}
+
+// ── Análise após o expediente + Monitoramento intradiário API ──────────────────────────────────
+
+export function runStockAnalysisPostMarket() {
+  return requestJson<StockAnalysisPostMarketResult>('/api/system/stock-analysis/run/post-market', {
+    method: 'POST',
+  })
+}
+
+export function startIntradayMonitor() {
+  return requestJson<IntradayMonitorStatus>('/api/system/stock-analysis/intraday/start', {
+    method: 'POST',
+  })
+}
+
+export function stopIntradayMonitor() {
+  return requestJson<IntradayMonitorStatus>('/api/system/stock-analysis/intraday/stop', {
+    method: 'POST',
+  })
+}
+
+export function fetchIntradayMonitorStatus() {
+  return requestJson<IntradayMonitorStatus>('/api/system/stock-analysis/intraday/status')
+}
+
+export function fetchIntradayAlerts() {
+  return requestJson<IntradayAlert[]>('/api/system/stock-analysis/intraday/alerts')
+}
+
+export function acknowledgeIntradayAlert(alertId: string) {
+  return requestJson<IntradayAlert>(`/api/system/stock-analysis/intraday/alerts/${alertId}/acknowledge`, {
+    method: 'POST',
+  })
+}
+
+export function acknowledgeAllIntradayAlerts() {
+  return requestJson<{ acknowledgedCount: number }>('/api/system/stock-analysis/intraday/alerts/acknowledge-all', {
+    method: 'POST',
+  })
+}
+
+// ── Coleta de dados Agent Configuração ──
+
+export function fetchDataAgentConfig() {
+  return requestJson<DataAgentConfigStore>('/api/system/stock-analysis/data-agent-config')
+}
+
+export function saveDataAgentConfig(config: DataAgentConfigStore) {
+  return requestJson<DataAgentConfigStore>('/api/system/stock-analysis/data-agent-config', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config),
+  })
+}
+
+// ── AI Análise especializada + Página de coleta de dados API ──
+
+export function fetchAvailableDates(type?: 'signals' | 'data-collection') {
+  const query = type ? `?type=${type}` : ''
+  return requestJson<string[]>(`/api/system/stock-analysis/available-dates${query}`)
+}
+
+export function fetchExpertAnalysis(date: string) {
+  return requestJson<ExpertAnalysisResponse>(`/api/system/stock-analysis/expert-analysis?date=${date}`)
+}
+
+export function fetchDataCollection(date: string) {
+  return requestJson<DataCollectionResponse>(`/api/system/stock-analysis/data-collection?date=${date}`)
+}
+
+// ── ações auto-selecionadas (Watchlist) API ──────────────────────────────────
+
+export function fetchWatchlist() {
+  return requestJson<WatchlistResponse>('/api/system/stock-analysis/watchlist')
+}
+
+export function searchStocks(query: string) {
+  return requestJson<StockSearchResult[]>(`/api/system/stock-analysis/watchlist/search?q=${encodeURIComponent(query)}`)
+}
+
+export function addWatchlistStock(stock: StockSearchResult, note?: string) {
+  return requestJson<UserWatchlistItem[]>('/api/system/stock-analysis/watchlist/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...stock, note: note ?? '' }),
+  })
+}
+
+export function removeWatchlistStock(code: string) {
+  return requestJson<UserWatchlistItem[]>('/api/system/stock-analysis/watchlist/remove', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  })
+}
+
+export function updateWatchlistStockNote(code: string, note: string) {
+  return requestJson<UserWatchlistItem[]>('/api/system/stock-analysis/watchlist/note', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, note }),
+  })
+}

@@ -1,0 +1,1266 @@
+import { handleVoiceUpgrade } from './services/voiceAgent';
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import crypto from 'crypto';
+import fs from 'fs';
+import { AccessToken } from 'livekit-server-sdk';
+import os from 'os';
+import path from 'path';
+import { spawn, ChildProcess } from 'child_process';
+import type { IncomingMessage } from 'http';
+import type { Socket } from 'net';
+import httpProxy from 'http-proxy';
+import { monitorEventLoopDelay } from 'perf_hooks';
+import { createProxyMiddleware, responseInterceptor } from 'http-proxy-middleware';
+import apiRoutes from './routes/index';
+import { logger } from './utils/logger';
+import { clearQuarkAuthSession, getCachedQuarkAuthSession, readQuarkAuthSession, updateQuarkAuthSession } from './utils/quarkAuth';
+import { initCronJobs } from './routes/cron';
+import { initReaderScheduler } from './services/reader/scheduler';
+import { initStockAnalysisScheduler } from './services/stock-analysis/scheduler';
+import { getOpenCodeBasicAuthHeader, OPENCODE_WEB_TARGET } from './utils/opencodeService';
+import { hasOpenCodeAppAccess } from './routes/opencode';
+import { createBullBoard } from '@bull-board/api';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { ExpressAdapter } from '@bull-board/express';
+import { socialMediaQueue, agentTasksQueue } from './utils/queueManager';
+
+dotenv.config();
+
+void initCronJobs();
+initReaderScheduler();
+initStockAnalysisScheduler();
+
+const app = express();
+const PORT = process.env.PORT || 3002;
+const SERVER_STARTED_AT = Date.now();
+const PERFORMANCE_LOG_PATH = path.resolve(__dirname, '../logs/http-performance.log');
+const PERFORMANCE_LOG_MAX_BYTES = 10 * 1024 * 1024;
+const SLOW_REQUEST_MS = 1000;
+let inFlightRequests = 0;
+const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 });
+eventLoopDelay.enable();
+let performanceLogRotationPromise: Promise<void> | null = null;
+const OPENCLAW_TARGET = 'http://127.0.0.1:18789';
+const OPENCLAW_WS_TARGET = 'ws://127.0.0.1:18789';
+const OPENCODE_WS_TARGET = 'ws://127.0.0.1:4096';
+const FILEBROWSER_TARGET = 'http://127.0.0.1:18790';
+const FILEBROWSER_BASE_PATH = '/proxy/filebrowser';
+const FILEBROWSER_INLINE_STYLE = '<style>.search-button{display:none!important;}</style>';
+const FILEBROWSER_AUTH_COOKIE = 'clawos_filebrowser_auth';
+const MEDIA_AUTH_COOKIE = 'clawos_media_auth';
+const QUARK_AUTH_TARGET = 'https://pan.quark.cn';
+const QUARK_UOP_TARGET = 'https://uop.quark.cn';
+const OPENCLAW_TRUSTED_PROXY_USER = 'clawos';
+
+function appendPerformanceLog(line: string): void {
+  void fs.promises.mkdir(path.dirname(PERFORMANCE_LOG_PATH), { recursive: true })
+    .then(async () => {
+      await fs.promises.appendFile(PERFORMANCE_LOG_PATH, `${line}\n`, 'utf8');
+      if (!performanceLogRotationPromise) {
+        performanceLogRotationPromise = rotatePerformanceLogIfNeeded().finally(() => {
+          performanceLogRotationPromise = null;
+        });
+      }
+    })
+    .catch((error) => {
+      logger.warn(`Performance log write failed: ${error.message}`, { module: 'Perf' });
+    });
+}
+
+async function rotatePerformanceLogIfNeeded(): Promise<void> {
+  try {
+    const stat = await fs.promises.stat(PERFORMANCE_LOG_PATH);
+    if (stat.size <= PERFORMANCE_LOG_MAX_BYTES) {
+      return;
+    }
+
+    const rotatedPath = `${PERFORMANCE_LOG_PATH}.1`;
+    await fs.promises.rm(rotatedPath, { force: true });
+    await fs.promises.rename(PERFORMANCE_LOG_PATH, rotatedPath);
+  } catch (error: any) {
+    if (error?.code !== 'ENOENT') {
+      logger.warn(`Performance log rotation failed: ${error.message}`, { module: 'Perf' });
+    }
+  }
+}
+
+function formatLogUrl(req: express.Request): string {
+  const originalUrl = req.originalUrl || req.url || '/';
+  return originalUrl.length > 300 ? `${originalUrl.slice(0, 300)}...` : originalUrl;
+}
+
+function getEventLoopDelayMs(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.round(value / 1_000_000);
+}
+
+function startPerformanceHeartbeat(): void {
+  let previousCpuUsage = process.cpuUsage();
+  let previousWallTime = process.hrtime.bigint();
+
+  setInterval(() => {
+    const currentCpuUsage = process.cpuUsage();
+    const currentWallTime = process.hrtime.bigint();
+    const elapsedMicros = Number(currentWallTime - previousWallTime) / 1000;
+    const cpuDeltaMicros = (currentCpuUsage.user - previousCpuUsage.user) + (currentCpuUsage.system - previousCpuUsage.system);
+    const cpuPercent = elapsedMicros > 0 ? (cpuDeltaMicros / elapsedMicros) * 100 : 0;
+    const memory = process.memoryUsage();
+    const p95LagMs = getEventLoopDelayMs(eventLoopDelay.percentile(95));
+    const maxLagMs = getEventLoopDelayMs(eventLoopDelay.max);
+
+    appendPerformanceLog(JSON.stringify({
+      ts: new Date().toISOString(),
+      type: 'heartbeat',
+      uptimeMs: Date.now() - SERVER_STARTED_AT,
+      inFlightRequests,
+      cpuPercent: Math.round(cpuPercent * 10) / 10,
+      rssMb: Math.round(memory.rss / 1024 / 1024),
+      heapUsedMb: Math.round(memory.heapUsed / 1024 / 1024),
+      eventLoopDelayP95Ms: p95LagMs,
+      eventLoopDelayMaxMs: maxLagMs,
+    }));
+
+    previousCpuUsage = currentCpuUsage;
+    previousWallTime = currentWallTime;
+    eventLoopDelay.reset();
+  }, 5000).unref();
+}
+
+function resolveOpenClawGatewayToken(): string {
+  const envToken = process.env.OPENCLAW_GATEWAY_TOKEN?.trim();
+  if (envToken) {
+    return envToken;
+  }
+
+  const homeDir = process.env.HOME?.trim() || os.homedir();
+  const openClawEnvPath = path.join(homeDir, '.openclaw', '.env');
+  try {
+    const parsedEnv = dotenv.parse(fs.readFileSync(openClawEnvPath, 'utf8'));
+    return parsedEnv.OPENCLAW_GATEWAY_TOKEN?.trim() ?? '';
+  } catch {
+    return '';
+  }
+}
+
+const OPENCLAW_GATEWAY_TOKEN = resolveOpenClawGatewayToken();
+
+function resolveClawosPassword(): string {
+  const envPassword = process.env.CLAWOS_PASSWORD?.trim();
+  if (envPassword) {
+    return envPassword;
+  }
+
+  const homeDir = process.env.HOME?.trim() || os.homedir();
+  const clawosEnvPath = path.join(homeDir, '.clawos', '.env');
+  try {
+    const parsedEnv = dotenv.parse(fs.readFileSync(clawosEnvPath, 'utf8'));
+    return parsedEnv.CLAWOS_PASSWORD?.trim() ?? '';
+  } catch {
+    return '';
+  }
+}
+
+const CLAWOS_PASSWORD = resolveClawosPassword();
+const FILEBROWSER_COOKIE_SECRET = CLAWOS_PASSWORD
+  ? crypto.createHash('sha256').update(`filebrowser:${CLAWOS_PASSWORD}`).digest('hex')
+  : '';
+const MEDIA_COOKIE_SECRET = CLAWOS_PASSWORD
+  ? crypto.createHash('sha256').update(`media:${CLAWOS_PASSWORD}`).digest('hex')
+  : '';
+
+function getExpectedFileBrowserCookieValue(): string {
+  return FILEBROWSER_COOKIE_SECRET;
+}
+
+function hasValidFileBrowserCookie(req: express.Request): boolean {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader || !FILEBROWSER_COOKIE_SECRET) {
+    return false;
+  }
+
+  const cookies = cookieHeader.split(';');
+  for (const rawCookie of cookies) {
+    const trimmedCookie = rawCookie.trim();
+    if (!trimmedCookie.startsWith(`${FILEBROWSER_AUTH_COOKIE}=`)) {
+      continue;
+    }
+
+    const cookieValue = decodeURIComponent(trimmedCookie.slice(FILEBROWSER_AUTH_COOKIE.length + 1));
+    return cookieValue === getExpectedFileBrowserCookieValue();
+  }
+
+  return false;
+}
+
+function hasValidCookie(req: express.Request, cookieName: string, expectedValue: string): boolean {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader || !expectedValue) {
+    return false;
+  }
+
+  const cookies = cookieHeader.split(';');
+  for (const rawCookie of cookies) {
+    const trimmedCookie = rawCookie.trim();
+    if (!trimmedCookie.startsWith(`${cookieName}=`)) {
+      continue;
+    }
+
+    const cookieValue = decodeURIComponent(trimmedCookie.slice(cookieName.length + 1));
+    return cookieValue === expectedValue;
+  }
+
+  return false;
+}
+
+function isFileBrowserProxyRequest(req: express.Request): boolean {
+  return req.originalUrl.startsWith('/proxy/filebrowser') || req.originalUrl.startsWith('/clawos/proxy/filebrowser');
+}
+
+function isPublicDidaCallbackRequest(req: express.Request): boolean {
+  return req.originalUrl.startsWith('/api/system/dida/callback') || req.originalUrl.startsWith('/clawos/api/system/dida/callback');
+}
+
+function isMediaStreamRequest(req: express.Request): boolean {
+  return (
+    req.originalUrl.startsWith('/api/system/music/stream_local') ||
+    req.originalUrl.startsWith('/clawos/api/system/music/stream_local') ||
+    req.originalUrl.startsWith('/api/system/localmusic/stream/') ||
+    req.originalUrl.startsWith('/clawos/api/system/localmusic/stream/')
+  );
+}
+
+function isOpenCodeProxyRequest(req: express.Request): boolean {
+  return req.originalUrl.startsWith('/proxy/opencode') || req.originalUrl.startsWith('/clawos/proxy/opencode');
+}
+
+function openCodeProxyAccessMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+  if (hasOpenCodeAppAccess(req.headers.cookie)) {
+    return next();
+  }
+
+  return res.status(423).json({ success: false, error: 'OpenCode Bloqueio de aplicativo não verificado' });
+}
+
+function buildFileBrowserAuthCookie(req: express.Request): string {
+  const secure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+  const cookieParts = [
+    `${FILEBROWSER_AUTH_COOKIE}=${encodeURIComponent(getExpectedFileBrowserCookieValue())}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+  ];
+
+  if (secure) {
+    cookieParts.push('Secure');
+  }
+
+  return cookieParts.join('; ');
+}
+
+function buildMediaAuthCookie(req: express.Request): string {
+  const secure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+  const cookieParts = [
+    `${MEDIA_AUTH_COOKIE}=${encodeURIComponent(MEDIA_COOKIE_SECRET)}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+  ];
+
+  if (secure) {
+    cookieParts.push('Secure');
+  }
+
+  return cookieParts.join('; ');
+}
+
+// Create auth middleware - checks Basic Auth header but doesn't prompt browser (frontend handles login UI)
+const authMiddleware = CLAWOS_PASSWORD
+  ? (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      if (isPublicDidaCallbackRequest(req)) {
+        return next();
+      }
+
+      if (isFileBrowserProxyRequest(req) && hasValidFileBrowserCookie(req)) {
+        return next();
+      }
+
+      if (isMediaStreamRequest(req) && hasValidCookie(req, MEDIA_AUTH_COOKIE, MEDIA_COOKIE_SECRET)) {
+        return next();
+      }
+
+      const clientIp = getRemoteAddress(req);
+      if (isLoginLocked(clientIp)) {
+        const remaining = getRemainingLockoutSeconds(clientIp);
+        return res.status(429).json({
+          success: false,
+          error: `Too many failed attempts. Try again in ${Math.ceil(remaining / 60)} minutes.`,
+          retryAfterSeconds: remaining,
+        });
+      }
+
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Basic ')) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+      
+      try {
+        const credentials = Buffer.from(authHeader.slice(6), 'base64').toString('utf8');
+        const [username, password] = credentials.split(':');
+        if (username === 'clawos' && password === CLAWOS_PASSWORD) {
+          clearLoginFailures(clientIp);
+          return next();
+        }
+      } catch {
+        // Invalid base64
+      }
+      
+      recordLoginFailure(clientIp);
+      logger.warn(`Failed Basic Auth attempt from ${clientIp}`);
+      return res.status(401).json({ success: false, error: 'Invalid credentials' });
+    }
+  : (_req: express.Request, _res: express.Response, next: express.NextFunction) => next();
+
+function getQuarkProxyBasePath(requestPath: string): string {
+  return requestPath.startsWith('/clawos/') ? '/clawos' : '';
+}
+
+function injectQuarkRequestRewrite(html: string, requestPath: string): string {
+  const proxyBasePath = getQuarkProxyBasePath(requestPath);
+  const marker = '</head>';
+  const rewriteScript = `<script>(function(){const authPrefix='${proxyBasePath}/proxy/quark-auth';const uopPrefix='${proxyBasePath}/proxy/quark-auth-uop';const rewriteUrl=(input)=>{if(typeof input!=='string'){return input;}if(input.startsWith('https://pan.quark.cn/')){return input.replace('https://pan.quark.cn',authPrefix);}if(input.startsWith('https://uop.quark.cn/')){return input.replace('https://uop.quark.cn',uopPrefix);}return input;};const originalFetch=window.fetch.bind(window);window.fetch=(input,init)=>{if(typeof input==='string'){return originalFetch(rewriteUrl(input),init);}if(input instanceof Request){return originalFetch(new Request(rewriteUrl(input.url),input),init);}return originalFetch(input,init);};const originalOpen=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(method,url,async,username,password){return originalOpen.call(this,method,rewriteUrl(url),async,username,password);};})();</script>`;
+  return html.includes(marker) ? html.replace(marker, `${rewriteScript}</head>`) : `${html}${rewriteScript}`;
+}
+
+function getOpenCodeProxyBasePath(requestPath: string): string {
+  return requestPath.startsWith('/clawos/') ? '/clawos/proxy/opencode' : '/proxy/opencode';
+}
+
+function injectOpenCodeRequestRewrite(html: string, requestPath: string): string {
+  const proxyPrefix = getOpenCodeProxyBasePath(requestPath);
+  const marker = '</head>';
+  const rewriteScript = `<script>(function(){const prefix='${proxyPrefix}';const rewriteUrl=(input)=>{if(typeof input!=='string'){return input;}if(!input.startsWith('/')||input.startsWith(prefix+'/')){return input;}if(input.startsWith('/proxy/')||input.startsWith('/clawos/')){return input;}return prefix+input;};const originalFetch=window.fetch.bind(window);window.fetch=(input,init)=>{if(typeof input==='string'){return originalFetch(rewriteUrl(input),init);}if(input instanceof Request){return originalFetch(new Request(rewriteUrl(input.url.replace(location.origin,'')),input),init);}return originalFetch(input,init);};const originalOpen=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(method,url,async,username,password){return originalOpen.call(this,method,rewriteUrl(url),async,username,password);};const OriginalEventSource=window.EventSource;window.EventSource=function(url,config){return new OriginalEventSource(rewriteUrl(url),config);};window.EventSource.prototype=OriginalEventSource.prototype;const OriginalWebSocket=window.WebSocket;window.WebSocket=function(url,protocols){if(typeof url==='string'){if(url.startsWith('ws://')||url.startsWith('wss://')){const parsed=new URL(url);url=(location.protocol==='https:'?'wss://':'ws://')+location.host+rewriteUrl(parsed.pathname+parsed.search);}else{url=(location.protocol==='https:'?'wss://':'ws://')+location.host+rewriteUrl(url);}}return protocols?new OriginalWebSocket(url,protocols):new OriginalWebSocket(url);};window.WebSocket.prototype=OriginalWebSocket.prototype;})();</script>`;
+  const rewrittenHtml = html
+    .replace(/(href|src|content)="\/(?!\/|proxy\/|clawos\/)([^"]*)"/g, `$1="${proxyPrefix}/$2"`)
+    .replace(/(href|src|content)='\/(?!\/|proxy\/|clawos\/)([^']*)'/g, `$1='${proxyPrefix}/$2'`);
+
+  return rewrittenHtml.includes(marker) ? rewrittenHtml.replace(marker, `${rewriteScript}</head>`) : `${rewrittenHtml}${rewriteScript}`;
+}
+
+function rewriteOpenCodeScriptPaths(source: string, requestPath: string): string {
+  const proxyPrefix = getOpenCodeProxyBasePath(requestPath);
+  return source.replace(/(["'`])\/assets\//g, `$1${proxyPrefix}/assets/`);
+}
+
+function getRemoteAddress(req: { headers?: Record<string, string | string[] | undefined>; socket?: { remoteAddress?: string | undefined } }): string {
+  const forwarded = req.headers?.['x-forwarded-for'];
+  if (forwarded) {
+    const firstIp = (Array.isArray(forwarded) ? forwarded[0] : forwarded).split(',')[0]?.trim();
+    if (firstIp) {
+      return firstIp;
+    }
+  }
+  return req.socket?.remoteAddress ?? 'unknown';
+}
+
+// --- Login brute-force protection ---
+const LOGIN_MAX_FAILURES = 5;
+const LOGIN_LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+const LOGIN_CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // cleanup every 10 minutes
+
+interface LoginAttemptRecord {
+  failures: number;
+  lockedUntil: number; // epoch ms, 0 = not locked
+}
+
+const loginAttempts = new Map<string, LoginAttemptRecord>();
+
+function isLoginLocked(ip: string): boolean {
+  const record = loginAttempts.get(ip);
+  if (!record) {
+    return false;
+  }
+  if (record.lockedUntil > 0 && Date.now() < record.lockedUntil) {
+    return true;
+  }
+  if (record.lockedUntil > 0 && Date.now() >= record.lockedUntil) {
+    loginAttempts.delete(ip);
+    return false;
+  }
+  return false;
+}
+
+function recordLoginFailure(ip: string): void {
+  const record = loginAttempts.get(ip) ?? { failures: 0, lockedUntil: 0 };
+  record.failures += 1;
+  if (record.failures >= LOGIN_MAX_FAILURES) {
+    record.lockedUntil = Date.now() + LOGIN_LOCKOUT_MS;
+    logger.warn(`Login locked for IP ${ip} after ${record.failures} failed attempts (${LOGIN_LOCKOUT_MS / 60000}min lockout)`);
+  }
+  loginAttempts.set(ip, record);
+}
+
+function clearLoginFailures(ip: string): void {
+  loginAttempts.delete(ip);
+}
+
+function getRemainingLockoutSeconds(ip: string): number {
+  const record = loginAttempts.get(ip);
+  if (!record || record.lockedUntil <= 0) {
+    return 0;
+  }
+  return Math.max(0, Math.ceil((record.lockedUntil - Date.now()) / 1000));
+}
+
+// Periodically clean up expired lockout records to prevent memory leak
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of loginAttempts) {
+    if (record.lockedUntil > 0 && now >= record.lockedUntil) {
+      loginAttempts.delete(ip);
+    }
+  }
+}, LOGIN_CLEANUP_INTERVAL_MS);
+
+function setTrustedProxyIdentityHeaders(headers: {
+  setHeader(name: string, value: string): void;
+  getHeader?(name: string): string | string[] | number | undefined;
+}, req: { headers?: Record<string, string | string[] | undefined> }) {
+  const forwardedProtoHeader = req.headers?.['x-forwarded-proto'];
+  const forwardedHostHeader = req.headers?.['x-forwarded-host'];
+  const hostHeader = req.headers?.host;
+
+  const forwardedProto = Array.isArray(forwardedProtoHeader)
+    ? forwardedProtoHeader[0]
+    : forwardedProtoHeader ?? 'http';
+  const forwardedHost = Array.isArray(forwardedHostHeader)
+    ? forwardedHostHeader[0]
+    : forwardedHostHeader ?? (Array.isArray(hostHeader) ? hostHeader[0] : hostHeader ?? '127.0.0.1:3002');
+
+  headers.setHeader('x-forwarded-user', OPENCLAW_TRUSTED_PROXY_USER);
+  headers.setHeader('x-forwarded-proto', forwardedProto);
+  headers.setHeader('x-forwarded-host', forwardedHost);
+}
+
+function stripFrameProtectionHeaders(proxyRes: { headers: Record<string, string | string[] | undefined> }) {
+  delete proxyRes.headers['x-frame-options'];
+  delete proxyRes.headers['X-Frame-Options'];
+
+  const cspHeader = proxyRes.headers['content-security-policy'];
+  if (!cspHeader) {
+    return;
+  }
+
+  if (Array.isArray(cspHeader)) {
+    proxyRes.headers['content-security-policy'] = cspHeader.map((value) =>
+      value.replace(/frame-ancestors\s+[^;]+;?/gi, ''),
+    );
+    return;
+  }
+
+  proxyRes.headers['content-security-policy'] = cspHeader.replace(/frame-ancestors\s+[^;]+;?/gi, '');
+}
+
+function rewriteProxyPrefix(requestUrl: string | undefined, prefix: string): string {
+  const rewrittenUrl = (requestUrl ?? '').replace(new RegExp(`^${prefix}`), '');
+  return rewrittenUrl.length > 0 ? rewrittenUrl : '/';
+}
+
+function prependBasePath(requestUrl: string | undefined, basePath: string): string {
+  const normalizedUrl = requestUrl && requestUrl.length > 0 ? requestUrl : '/';
+  return `${basePath}${normalizedUrl.startsWith('/') ? normalizedUrl : `/${normalizedUrl}`}`;
+}
+
+function closeSocketSet(socketSet: Set<Socket>, gracefulDelayMs: number) {
+  for (const socket of socketSet) {
+    socket.end();
+    socket.setTimeout(gracefulDelayMs, () => {
+      socket.destroy();
+    });
+  }
+}
+
+// Middleware
+// v1.35.0 [A6-P0-1] CORS Fechar-se：padrão original cors() Permitir qualquer origin（Curinga），Agora alterado para lista de permissões。
+// porque server Apenas ouça 127.0.0.1（line 692），O risco cibernético real é limitado，
+// Mas ainda assim cale a boca origin lista branca + credentials:true para evitar futuras alterações de implantação CSRF risco。
+const CORS_ORIGIN_WHITELIST = [
+  'http://localhost:5173',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:3002',
+  'http://localhost:3003',
+];
+
+function isAllowedCorsOrigin(origin: string): boolean {
+  if (CORS_ORIGIN_WHITELIST.includes(origin) || origin.startsWith('http://localhost')) {
+    return true;
+  }
+
+  try {
+    const parsedOrigin = new URL(origin);
+    return parsedOrigin.hostname === 'ts.net' || parsedOrigin.hostname.endsWith('.ts.net');
+  } catch {
+    return false;
+  }
+}
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Não permitir nenhum origin perguntar（Homologia / curl / Chamada interna do agente）
+    if (!origin || isAllowedCorsOrigin(origin)) {
+      return callback(null, true);
+    }
+    logger.warn(`CORS rejeitar：não-lista branca origin=${origin}`, { module: 'Server' });
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  credentials: true,
+}));
+
+app.use((req, res, next) => {
+  const startedAt = process.hrtime.bigint();
+  inFlightRequests += 1;
+
+  res.on('finish', () => {
+    inFlightRequests = Math.max(0, inFlightRequests - 1);
+    const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+    const roundedDurationMs = Math.round(durationMs * 10) / 10;
+    const payload = {
+      ts: new Date().toISOString(),
+      type: durationMs >= SLOW_REQUEST_MS ? 'slow-request' : 'request',
+      method: req.method,
+      url: formatLogUrl(req),
+      status: res.statusCode,
+      durationMs: roundedDurationMs,
+      contentLength: res.getHeader('content-length') ?? null,
+      inFlightRequests,
+    };
+
+    if (durationMs >= SLOW_REQUEST_MS || req.originalUrl.startsWith('/api/system/hardware') || req.originalUrl.startsWith('/api/system/services')) {
+      appendPerformanceLog(JSON.stringify(payload));
+    }
+  });
+
+  res.on('close', () => {
+    if (!res.writableEnded) {
+      inFlightRequests = Math.max(0, inFlightRequests - 1);
+      const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+      appendPerformanceLog(JSON.stringify({
+        ts: new Date().toISOString(),
+        type: 'aborted-request',
+        method: req.method,
+        url: formatLogUrl(req),
+        durationMs: Math.round(durationMs * 10) / 10,
+        inFlightRequests,
+      }));
+    }
+  });
+
+  next();
+});
+
+startPerformanceHeartbeat();
+
+// Serve static frontend files FIRST - no authentication needed to load the UI
+const frontendPath = path.resolve(__dirname, '../../frontend/dist');
+logger.info(`Serving frontend from: ${frontendPath}`);
+app.use(express.static(frontendPath));
+app.use('/clawos', express.static(frontendPath, { redirect: false }));
+
+const reversaDocsPath = path.resolve(__dirname, '../../.reversa/documentation');
+app.use('/reversa-docs', express.static(reversaDocsPath));
+
+// Auth verification endpoint (no authentication needed for login)
+app.post('/api/system/auth/verify', express.json(), (req, res) => {
+  if (!CLAWOS_PASSWORD) {
+    return res.json({ success: true, message: 'No password required' });
+  }
+
+  const clientIp = getRemoteAddress(req);
+  if (isLoginLocked(clientIp)) {
+    const remaining = getRemainingLockoutSeconds(clientIp);
+    logger.warn(`Login attempt from locked IP ${clientIp} (${remaining}s remaining)`);
+    return res.status(429).json({
+      success: false,
+      error: `Too many failed attempts. Try again in ${Math.ceil(remaining / 60)} minutes.`,
+      retryAfterSeconds: remaining,
+    });
+  }
+
+  const { password } = req.body;
+  if (password === CLAWOS_PASSWORD) {
+    clearLoginFailures(clientIp);
+    if (FILEBROWSER_COOKIE_SECRET) {
+      res.setHeader('Set-Cookie', buildFileBrowserAuthCookie(req));
+      res.append('Set-Cookie', buildMediaAuthCookie(req));
+    } else {
+      res.setHeader('Set-Cookie', buildMediaAuthCookie(req));
+    }
+    res.json({ success: true, message: 'Authentication successful' });
+  } else {
+    recordLoginFailure(clientIp);
+    logger.warn(`Failed login attempt from ${clientIp}`);
+    res.status(401).json({ success: false, error: 'Invalid password' });
+  }
+});
+
+// --- Proxy for OpenClaw (NO authentication required - OpenClaw has its own token auth) ---
+// Must be before authMiddleware so iframe can load without Basic Auth header
+const openclawProxy = createProxyMiddleware({
+  target: OPENCLAW_TARGET,
+  changeOrigin: true,
+  xfwd: true,
+  ws: false,
+  selfHandleResponse: true,
+  pathRewrite: (requestPath) => rewriteProxyPrefix(rewriteProxyPrefix(requestPath, '/clawos/proxy/openclaw'), '/proxy/openclaw'),
+  on: {
+    proxyReq: (proxyReq, req) => {
+      setTrustedProxyIdentityHeaders(proxyReq, req);
+    },
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, res) => {
+      stripFrameProtectionHeaders(proxyRes as { headers: Record<string, string | string[] | undefined> });
+
+      res.removeHeader('x-frame-options');
+      res.removeHeader('X-Frame-Options');
+      res.setHeader(
+        'content-security-policy',
+        "default-src 'self'; base-uri 'none'; object-src 'none'; script-src 'self' 'unsafe-inline' 'sha256-RxCZFmTWY/yQmhYxMDn+blaCuwLzOsV/XsVb0n5EkRU='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' ws: wss:",
+      );
+
+      const contentType = String(proxyRes.headers['content-type'] ?? '');
+      if (!contentType.includes('text/html')) {
+        return responseBuffer;
+      }
+
+      return responseBuffer;
+    })
+  }
+});
+
+app.use('/proxy/openclaw', openclawProxy);
+app.use('/clawos/proxy/openclaw', openclawProxy);
+
+const opencodeAssetRewriteProxy = createProxyMiddleware({
+  target: OPENCODE_WEB_TARGET,
+  changeOrigin: true,
+  xfwd: true,
+  ws: false,
+  selfHandleResponse: true,
+  pathRewrite: (requestPath, req) => {
+    const originalUrl = (req as express.Request).originalUrl || requestPath;
+    return rewriteProxyPrefix(rewriteProxyPrefix(originalUrl, '/clawos/proxy/opencode'), '/proxy/opencode');
+  },
+  on: {
+    proxyReq: (proxyReq) => {
+      proxyReq.setHeader('Authorization', getOpenCodeBasicAuthHeader());
+    },
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req) => {
+      stripFrameProtectionHeaders(proxyRes as { headers: Record<string, string | string[] | undefined> });
+      delete proxyRes.headers['www-authenticate'];
+      delete proxyRes.headers['content-security-policy'];
+
+      const response = (req as IncomingMessage & { res?: express.Response }).res;
+      response?.removeHeader('content-security-policy');
+      response?.setHeader('content-security-policy', "default-src 'self' data: blob:; base-uri 'none'; object-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self' data: blob: ws: wss:");
+
+      const contentType = String(proxyRes.headers['content-type'] ?? '');
+      if (contentType.includes('javascript') || contentType.includes('ecmascript')) {
+        return rewriteOpenCodeScriptPaths(responseBuffer.toString('utf8'), req.url ?? '/proxy/opencode/');
+      }
+
+      if (!contentType.includes('text/html')) {
+        return responseBuffer;
+      }
+
+      return injectOpenCodeRequestRewrite(responseBuffer.toString('utf8'), req.url ?? '/proxy/opencode/');
+    }),
+  },
+});
+
+const opencodeStreamingProxy = createProxyMiddleware({
+  target: OPENCODE_WEB_TARGET,
+  changeOrigin: true,
+  xfwd: true,
+  ws: false,
+  selfHandleResponse: false,
+  pathRewrite: (requestPath, req) => {
+    const originalUrl = (req as express.Request).originalUrl || requestPath;
+    return rewriteProxyPrefix(rewriteProxyPrefix(originalUrl, '/clawos/proxy/opencode'), '/proxy/opencode');
+  },
+  on: {
+    proxyReq: (proxyReq) => {
+      proxyReq.setHeader('Authorization', getOpenCodeBasicAuthHeader());
+    },
+    proxyRes: (proxyRes) => {
+      stripFrameProtectionHeaders(proxyRes as { headers: Record<string, string | string[] | undefined> });
+      delete proxyRes.headers['www-authenticate'];
+      delete proxyRes.headers['content-security-policy'];
+    },
+  },
+});
+
+app.use(/^\/proxy\/opencode\/(?:global\/)?event(?:\?.*)?$/, openCodeProxyAccessMiddleware, opencodeStreamingProxy);
+app.use(/^\/clawos\/proxy\/opencode\/(?:global\/)?event(?:\?.*)?$/, openCodeProxyAccessMiddleware, opencodeStreamingProxy);
+app.use('/proxy/opencode/assets', openCodeProxyAccessMiddleware, opencodeAssetRewriteProxy);
+app.use('/clawos/proxy/opencode/assets', openCodeProxyAccessMiddleware, opencodeAssetRewriteProxy);
+app.use('/proxy/opencode', openCodeProxyAccessMiddleware, opencodeAssetRewriteProxy);
+app.use('/clawos/proxy/opencode', openCodeProxyAccessMiddleware, opencodeAssetRewriteProxy);
+
+// Catch-all to serve index.html for unknown routes (React Router support)
+// This must be BEFORE authMiddleware so the login page can load
+app.use((req, res, next) => {
+  if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/proxy')) {
+    return next(); // Let the 404 fallback handle it
+  }
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
+app.use('/clawos', (req, res, next) => {
+  if (req.originalUrl.startsWith('/clawos/api') || req.originalUrl.startsWith('/clawos/proxy')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
+// Authentication middleware - protects API routes and other proxies only
+app.use(authMiddleware);
+
+app.use((req, res, next) => {
+  if (req.originalUrl === '/clawos') {
+    res.redirect('/clawos/');
+    return;
+  }
+  next();
+});
+
+// --- Proxy for FileBrowser ---
+const filebrowserProxy = createProxyMiddleware({
+  target: FILEBROWSER_TARGET,
+  changeOrigin: true,
+  ws: false,
+  selfHandleResponse: true,
+  pathRewrite: (path) => prependBasePath(path, FILEBROWSER_BASE_PATH),
+  on: {
+    proxyReq: (proxyReq, req) => {
+      logger.info(
+        `FileBrowser HTTP proxying ${req.url ?? '/'} from ${getRemoteAddress(req)} to ${proxyReq.path}`,
+        { module: 'Proxy' },
+      );
+    },
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes) => {
+      stripFrameProtectionHeaders(proxyRes as { headers: Record<string, string | string[] | undefined> });
+
+      const contentType = String(proxyRes.headers['content-type'] ?? '');
+      if (!contentType.includes('text/html')) {
+        return responseBuffer;
+      }
+
+      const html = responseBuffer.toString('utf8');
+      if (html.includes(FILEBROWSER_INLINE_STYLE)) {
+        return html;
+      }
+
+      return html.replace('</head>', `${FILEBROWSER_INLINE_STYLE}</head>`);
+    })
+  }
+});
+
+app.use('/clawos/proxy/filebrowser', filebrowserProxy);
+app.use('/proxy/filebrowser', filebrowserProxy);
+
+const quarkAuthProxy = createProxyMiddleware({
+  target: QUARK_AUTH_TARGET,
+  changeOrigin: true,
+  ws: false,
+  secure: true,
+  selfHandleResponse: true,
+  pathRewrite: {
+    '^/proxy/quark-auth': '',
+    '^/clawos/proxy/quark-auth': ''
+  },
+  on: {
+    proxyReq: (proxyReq) => {
+      const session = getCachedQuarkAuthSession();
+      if (session?.cookieHeader) {
+        proxyReq.setHeader('Cookie', session.cookieHeader);
+      }
+      proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36');
+      proxyReq.setHeader('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8');
+      proxyReq.setHeader('Accept-Language', 'zh-CN,zh;q=0.9,en;q=0.8');
+      proxyReq.setHeader('Sec-Fetch-Site', 'same-origin');
+      proxyReq.setHeader('Sec-Fetch-Mode', 'navigate');
+      proxyReq.setHeader('Sec-Fetch-Dest', 'iframe');
+      proxyReq.setHeader('Origin', QUARK_AUTH_TARGET);
+      proxyReq.setHeader('Referer', `${QUARK_AUTH_TARGET}/`);
+    },
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req) => {
+      stripFrameProtectionHeaders(proxyRes as { headers: Record<string, string | string[] | undefined> });
+
+      const setCookieHeader = proxyRes.headers['set-cookie'];
+      if (Array.isArray(setCookieHeader) && setCookieHeader.length > 0) {
+        await updateQuarkAuthSession(setCookieHeader);
+      }
+
+      delete proxyRes.headers['x-frame-options'];
+      const contentType = String(proxyRes.headers['content-type'] ?? '');
+      if (!contentType.includes('text/html')) {
+        return responseBuffer;
+      }
+
+      return injectQuarkRequestRewrite(responseBuffer.toString('utf8'), req.url ?? '/proxy/quark-auth/');
+    })
+  }
+});
+
+const quarkUopProxy = createProxyMiddleware({
+  target: QUARK_UOP_TARGET,
+  changeOrigin: true,
+  ws: false,
+  secure: true,
+  pathRewrite: {
+    '^/proxy/quark-auth-uop': '',
+    '^/clawos/proxy/quark-auth-uop': ''
+  },
+  on: {
+    proxyReq: (proxyReq) => {
+      const session = getCachedQuarkAuthSession();
+      if (session?.cookieHeader) {
+        proxyReq.setHeader('Cookie', session.cookieHeader);
+      }
+      proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36');
+      proxyReq.setHeader('Accept', 'application/json, text/plain, */*');
+      proxyReq.setHeader('Accept-Language', 'zh-CN,zh;q=0.9,en;q=0.8');
+      proxyReq.setHeader('Origin', QUARK_AUTH_TARGET);
+      proxyReq.setHeader('Referer', `${QUARK_AUTH_TARGET}/`);
+    },
+    proxyRes: async (proxyRes) => {
+      stripFrameProtectionHeaders(proxyRes as { headers: Record<string, string | string[] | undefined> });
+
+      const setCookieHeader = proxyRes.headers['set-cookie'];
+      if (Array.isArray(setCookieHeader) && setCookieHeader.length > 0) {
+        await updateQuarkAuthSession(setCookieHeader);
+      }
+
+      delete proxyRes.headers['x-frame-options'];
+      proxyRes.headers['access-control-allow-origin'] = '*';
+      proxyRes.headers['access-control-allow-credentials'] = 'true';
+    }
+  }
+});
+
+app.use('/proxy/quark-auth', quarkAuthProxy);
+app.use('/clawos/proxy/quark-auth', quarkAuthProxy);
+app.use('/proxy/quark-auth-uop', quarkUopProxy);
+app.use('/clawos/proxy/quark-auth-uop', quarkUopProxy);
+
+const openclawWebSocketProxy = httpProxy.createProxyServer({
+  target: OPENCLAW_WS_TARGET,
+  changeOrigin: true,
+  xfwd: true,
+  ws: true,
+});
+
+const opencodeWebSocketProxy = httpProxy.createProxyServer({
+  target: OPENCODE_WS_TARGET,
+  changeOrigin: true,
+  xfwd: true,
+  ws: true,
+});
+
+opencodeWebSocketProxy.on('proxyReqWs', (proxyReq) => {
+  proxyReq.setHeader('Authorization', getOpenCodeBasicAuthHeader());
+});
+
+opencodeWebSocketProxy.on('error', (error, req, socket) => {
+  logger.error(`OpenCode WebSocket proxy error on ${req?.url ?? '/'}: ${error.message}`, { module: 'Proxy' });
+  if (socket && 'destroy' in socket) {
+    socket.destroy();
+  }
+});
+
+openclawWebSocketProxy.on('proxyReqWs', (proxyReq, req) => {
+  setTrustedProxyIdentityHeaders(proxyReq, req);
+  logger.info(
+    `OpenClaw WebSocket proxying ${req.url ?? '/'} from ${getRemoteAddress(req)} to ${OPENCLAW_WS_TARGET}`,
+    { module: 'Proxy' },
+  );
+
+  if (proxyReq.path) {
+    logger.info(`OpenClaw WebSocket upstream path ${proxyReq.path}`, { module: 'Proxy' });
+  }
+});
+
+openclawWebSocketProxy.on('error', (error, req, socket) => {
+  const requestPath = req?.url ?? '/';
+  logger.error(`OpenClaw WebSocket proxy error on ${requestPath}: ${error.message}`, { module: 'Proxy' });
+  if (socket && 'destroy' in socket) {
+    socket.destroy();
+  }
+});
+
+app.use(express.json());
+
+// Rota de Token LiveKit
+app.get('/api/system/livekit/token', async (req, res) => {
+  const roomName = (req.query.room as string) || 'tokio_ia_room';
+  const participantName = (req.query.user as string) || 'User';
+
+  // Chaves do OpenClaw/LiveKit
+  const apiKey = process.env.LIVEKIT_API_KEY || 'devkey';
+  const apiSecret = process.env.LIVEKIT_API_SECRET || 'secret';
+
+  const at = new AccessToken(apiKey, apiSecret, {
+    identity: participantName,
+  });
+
+  at.addGrant({ roomJoin: true, room: roomName });
+
+  res.json({ token: await at.toJwt() }); // Note: toJwt() might be sync or async, it is actually sync in some versions, await is safe but let's check. Actually toJwt returns a Promise in newer SDKs.
+});
+
+// Alias for proxy path
+app.get('/clawos/api/system/livekit/token', async (req, res) => {
+  const roomName = (req.query.room as string) || 'tokio_ia_room';
+  const participantName = (req.query.user as string) || 'User';
+  const apiKey = process.env.LIVEKIT_API_KEY || 'devkey';
+  const apiSecret = process.env.LIVEKIT_API_SECRET || 'secret';
+  const at = new AccessToken(apiKey, apiSecret, { identity: participantName });
+  at.addGrant({ roomJoin: true, room: roomName });
+  res.json({ token: await at.toJwt() });
+});
+
+// ==========================================
+// Process Control para Tokio IA (LiveKit)
+// ==========================================
+let activeAgentProcess: ChildProcess | null = null;
+let activeAgentStartTime: number | null = null;
+let activeAgentEngine: string | null = null;
+
+app.post('/api/system/livekit/agent/start', (req, res) => {
+  if (activeAgentProcess && !activeAgentProcess.killed) {
+    return res.status(400).json({ error: 'O Agente já está em execução.' });
+  }
+
+  const { engine } = req.body || { engine: 'gemini' };
+  const agentDir = path.join(__dirname, '../../OpenClaw/agents/tokio_ia');
+  
+  // Utilizar o ambiente virtual do agente
+  const pythonBin = path.join(agentDir, '.venv/bin/python');
+  activeAgentProcess = spawn(pythonBin, ['agent.py', 'start'], {
+    cwd: agentDir,
+    env: { ...process.env, TOKIO_LLM_ENGINE: engine },
+    detached: true,
+    stdio: 'ignore'
+  });
+
+  activeAgentProcess.unref(); // Deixa rodar independente da vida do backend
+  activeAgentStartTime = Date.now();
+  activeAgentEngine = engine;
+
+  activeAgentProcess.on('error', (err) => {
+    console.error('Falha ao iniciar Agente Tokio IA:', err);
+    activeAgentProcess = null;
+  });
+
+  activeAgentProcess.on('exit', () => {
+    console.log('Agente Tokio IA desligado.');
+    if (activeAgentStartTime && (activeAgentEngine === 'gemini' || activeAgentEngine === 'local')) {
+      const durationSeconds = (Date.now() - activeAgentStartTime) / 1000;
+      fetch('http://127.0.0.1:3001/api/system/ai/gemini/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seconds: durationSeconds })
+      }).catch(e => console.error('Erro na telemetria:', e));
+    }
+    activeAgentStartTime = null;
+    activeAgentEngine = null;
+    activeAgentProcess = null;
+  });
+
+  res.json({ success: true, message: 'Agente Tokio IA iniciado em background.', pid: activeAgentProcess.pid });
+});
+
+app.post('/api/system/livekit/agent/stop', (req, res) => {
+  if (activeAgentProcess && !activeAgentProcess.killed) {
+    // Tenta matar graciosamente, ou força com SIGKILL se falhar.
+    try {
+      process.kill(-activeAgentProcess.pid!); // Mata o process group se detached. Como não passamos setuid, e kill(-) exige que o process group lider seja ele.
+    } catch (e) {
+      activeAgentProcess.kill('SIGKILL');
+    }
+    activeAgentProcess = null;
+    return res.json({ success: true, message: 'Agente Tokio IA desligado.' });
+  }
+
+  res.status(400).json({ error: 'Nenhum agente em execução.' });
+});
+
+app.get('/api/system/livekit/agent/status', (req, res) => {
+  const isRunning = activeAgentProcess !== null && !activeAgentProcess.killed;
+  res.json({ running: isRunning, pid: isRunning ? activeAgentProcess?.pid : null });
+});
+
+app.get('/api/system/apps/status', async (req, res) => {
+  const status: Record<string, { status: string; message: string }> = {};
+
+  // Voz da Tokio (LiveKit)
+  const isVoiceRunning = activeAgentProcess !== null && !activeAgentProcess.killed;
+  status['voice'] = {
+    status: isVoiceRunning ? 'online' : 'offline',
+    message: isVoiceRunning ? 'Processo agent.py rodando e conectado ao LiveKit' : 'Agente não iniciado (Offline)'
+  };
+
+  // Memória Neural (Mem0)
+  const hasMem0 = !!process.env.MEM0_API_KEY;
+  status['memory'] = {
+    status: hasMem0 ? 'online' : 'offline',
+    message: hasMem0 ? 'Conectado ao Storage Cloud (Mem0 API Key detectada)' : 'Desconectado: MEM0_API_KEY não configurada no .env'
+  };
+
+  // Funções helper pra testar porta local
+  const checkPort = (port: number): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const net = require('net');
+      const socket = new net.Socket();
+      socket.setTimeout(500);
+      socket.on('connect', () => { socket.destroy(); resolve(true); });
+      socket.on('timeout', () => { socket.destroy(); resolve(false); });
+      socket.on('error', () => { resolve(false); });
+      socket.connect(port, '127.0.0.1');
+    });
+  };
+
+  // Hermes Agent (presumido porta 8000)
+  const isHermesUp = await checkPort(8000);
+  status['hermes'] = {
+    status: isHermesUp ? 'online' : 'offline',
+    message: isHermesUp ? 'Motor RPA online (Porta 8000)' : 'Microserviço do Orquestrador RPA não detectado'
+  };
+
+  // Firecrawl (presumido porta 3002 / OpenClaw local)
+  const isFirecrawlUp = await checkPort(3002);
+  status['firecrawl'] = {
+    status: isFirecrawlUp ? 'online' : 'offline',
+    message: isFirecrawlUp ? 'API de Scrape pronta para Crawler (Porta 3002)' : 'Gateway de conexão web inativo'
+  };
+
+  res.json({ success: true, data: status });
+});
+
+app.get('/api/system/openclaw/bootstrap', (_req, res) => {
+  res.json({
+    success: true,
+    data: {
+      token: OPENCLAW_GATEWAY_TOKEN,
+    },
+  });
+});
+
+app.get('/clawos/api/system/openclaw/bootstrap', (_req, res) => {
+  res.json({
+    success: true,
+    data: {
+      token: OPENCLAW_GATEWAY_TOKEN,
+    },
+  });
+});
+
+app.post('/api/system/netdisk/quark-auth/reset', async (_req, res) => {
+  await clearQuarkAuthSession();
+  res.json({ success: true });
+});
+
+app.post('/clawos/api/system/netdisk/quark-auth/reset', async (_req, res) => {
+  await clearQuarkAuthSession();
+  res.json({ success: true });
+});
+
+app.get('/api/system/netdisk/quark-auth/status', async (_req, res) => {
+  const session = await readQuarkAuthSession();
+  const cookieHeader = session?.cookieHeader || '';
+  const hasSession = cookieHeader.length > 0;
+  const loginDetected = /_m_h5_tk=|__uid=|sid=|kps=|sign=/.test(cookieHeader);
+
+  res.json({
+    success: true,
+    data: {
+      hasSession,
+      loginDetected,
+      updatedAt: session?.updatedAt || null,
+      cookie: cookieHeader
+    }
+  });
+});
+
+app.get('/clawos/api/system/netdisk/quark-auth/status', async (_req, res) => {
+  const session = await readQuarkAuthSession();
+  const cookieHeader = session?.cookieHeader || '';
+  const hasSession = cookieHeader.length > 0;
+  const loginDetected = /_m_h5_tk=|__uid=|sid=|kps=|sign=/.test(cookieHeader);
+
+  res.json({
+    success: true,
+    data: {
+      hasSession,
+      loginDetected,
+      updatedAt: session?.updatedAt || null,
+      cookie: cookieHeader
+    }
+  });
+});
+
+// Request Logging Middleware
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.originalUrl}`, { module: 'HTTP' });
+  next();
+});
+
+// API Routes (protected by authMiddleware)
+app.use('/api/system', apiRoutes);
+app.use('/clawos/api/system', apiRoutes);
+
+// Bull-Board integration
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath('/admin/queues');
+
+createBullBoard({
+  queues: [
+    new BullMQAdapter(socialMediaQueue),
+    new BullMQAdapter(agentTasksQueue)
+  ],
+  serverAdapter: serverAdapter,
+});
+
+app.use('/admin/queues', serverAdapter.getRouter());
+
+// Error handling fallback for API
+app.use((req, res) => {
+  logger.warn(`404 Not Found: ${req.originalUrl}`, { module: 'HTTP' });
+  res.status(404).json({ success: false, error: 'Not Found' });
+});
+
+// Start server - bind to 127.0.0.1 to prevent LAN access (only Tailscale Funnel and localhost can access)
+const server = app.listen(Number(PORT), '127.0.0.1', () => {
+  logger.info(`ClawOS Backend started on port ${PORT} (bound to 127.0.0.1)`, { module: 'Server' });
+  logger.info(`Serving frontend from: ${frontendPath}`, { module: 'Server' });
+});
+
+const httpSockets = new Set<Socket>();
+const upgradedSockets = new Set<Socket>();
+let isShuttingDown = false;
+
+server.on('connection', (socket) => {
+  httpSockets.add(socket);
+  socket.on('close', () => {
+    httpSockets.delete(socket);
+    upgradedSockets.delete(socket);
+  });
+});
+
+// Handle WebSocket upgrades for proxies
+server.on('upgrade', (req, socket, head) => {
+  upgradedSockets.add(socket as Socket);
+  if (req.url && req.url.startsWith('/proxy/openclaw')) {
+    const originalUrl = req.url;
+    req.url = rewriteProxyPrefix(req.url, '/proxy/openclaw');
+    logger.info(
+      `Accepted WebSocket upgrade ${originalUrl} -> ${req.url} from ${getRemoteAddress(req)}`,
+      { module: 'Proxy' },
+    );
+    openclawWebSocketProxy.ws(req, socket as any, head);
+  } else if (req.url && req.url.startsWith('/clawos/proxy/openclaw')) {
+    const originalUrl = req.url;
+    req.url = rewriteProxyPrefix(req.url, '/clawos/proxy/openclaw');
+    logger.info(
+      `Accepted ClawOS OpenClaw WebSocket upgrade ${originalUrl} -> ${req.url} from ${getRemoteAddress(req)}`,
+      { module: 'Proxy' },
+    );
+    openclawWebSocketProxy.ws(req, socket as any, head);
+  } else if (req.url && req.url.startsWith('/proxy/opencode')) {
+    if (!hasOpenCodeAppAccess(req.headers.cookie)) {
+      logger.warn(`Rejected locked OpenCode WebSocket upgrade from ${getRemoteAddress(req)}`, { module: 'Proxy' });
+      socket.destroy();
+      return;
+    }
+    const originalUrl = req.url;
+    req.url = rewriteProxyPrefix(req.url, '/proxy/opencode');
+    logger.info(`Accepted OpenCode WebSocket upgrade ${originalUrl} -> ${req.url} from ${getRemoteAddress(req)}`, { module: 'Proxy' });
+    opencodeWebSocketProxy.ws(req, socket as any, head);
+  } else if (req.url && req.url.startsWith('/clawos/proxy/opencode')) {
+    if (!hasOpenCodeAppAccess(req.headers.cookie)) {
+      logger.warn(`Rejected locked ClawOS OpenCode WebSocket upgrade from ${getRemoteAddress(req)}`, { module: 'Proxy' });
+      socket.destroy();
+      return;
+    }
+    const originalUrl = req.url;
+    req.url = rewriteProxyPrefix(req.url, '/clawos/proxy/opencode');
+    logger.info(`Accepted ClawOS OpenCode WebSocket upgrade ${originalUrl} -> ${req.url} from ${getRemoteAddress(req)}`, { module: 'Proxy' });
+    opencodeWebSocketProxy.ws(req, socket as any, head);
+  } else if (req.url && req.url.startsWith('/api/system/voice-stream')) {
+    logger.info(`Accepted Voice WebSocket upgrade from ${getRemoteAddress(req)}`, { module: 'Voice' });
+    handleVoiceUpgrade(req, socket as any, head);
+  } else {
+    logger.warn(`Rejected WebSocket upgrade for ${req.url ?? 'unknown path'} from ${getRemoteAddress(req)}`, {
+      module: 'Proxy'
+    });
+    socket.destroy();
+  }
+});
+
+function shutdownServer(signal: string) {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
+  logger.warn(`Received ${signal}, shutting down ClawOS backend`, { module: 'Server' });
+
+  openclawWebSocketProxy.close();
+  opencodeWebSocketProxy.close();
+  server.close((error) => {
+    if (error) {
+      logger.error(`Graceful shutdown failed: ${error.message}`, { module: 'Server' });
+      process.exit(1);
+      return;
+    }
+
+    logger.info('ClawOS backend stopped cleanly', { module: 'Server' });
+    process.exit(0);
+  });
+
+  closeSocketSet(httpSockets, 1500);
+  closeSocketSet(upgradedSockets, 1500);
+
+  setTimeout(() => {
+    logger.error('Forced shutdown after timeout while waiting for sockets to close', { module: 'Server' });
+    for (const socket of upgradedSockets) {
+      socket.destroy();
+    }
+    for (const socket of httpSockets) {
+      socket.destroy();
+    }
+    process.exit(1);
+  }, 5000).unref();
+}
+
+process.on('SIGTERM', () => {
+  shutdownServer('SIGTERM');
+});
+
+process.on('SIGINT', () => {
+  shutdownServer('SIGINT');
+});
+
+server.on('error', (e: NodeJS.ErrnoException) => {
+  console.error('Server failed to start', e);
+  logger.error(`Server error: ${e.message}`, { module: 'Server' });
+
+  if (e.code === 'EADDRINUSE') {
+    logger.error('Port 3002 is still occupied, exiting so systemd can retry cleanly', { module: 'Server' });
+    process.exit(1);
+  }
+});

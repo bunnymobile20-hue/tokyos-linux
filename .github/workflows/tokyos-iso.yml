@@ -1,0 +1,109 @@
+# GitHub Actions — Build automático da ISO TokyOS Linux
+# Gera ISO em cada push para main/release
+name: Build TokyOS ISO
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'tokyos-linux/**'
+  release:
+    types: [ published ]
+  workflow_dispatch:  # manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Compile Backend
+        working-directory: backend
+        run: |
+          npm ci
+          npx tsc
+
+      - name: Install ISO build deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            debootstrap squashfs-tools xorriso \
+            grub-pc-bin grub-efi-amd64-bin mtools
+
+      - name: Build ISO
+        working-directory: tokyos-linux
+        run: sudo make iso
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tokyos-linux-iso
+          path: tokyos-linux/tokyos-linux.iso
+          retention-days: 30
+
+      - name: Upload to Release (se for release)
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: tokyos-linux/tokyos-linux.iso
+
+  build-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Compile Backend
+        working-directory: backend
+        run: |
+          npm ci
+          npx tsc
+
+      - name: Build Bundle (squashfs portátil)
+        working-directory: tokyos-linux
+        run: bash build/mktokyos-bundle.sh
+
+      - name: Upload Bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tokyos-runtime
+          path: |
+            tokyos-linux/tokyos-runtime.squashfs
+            tokyos-linux/run-tokyos.sh
+          retention-days: 30

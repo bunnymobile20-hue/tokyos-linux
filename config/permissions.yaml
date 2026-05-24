@@ -1,0 +1,26 @@
+seguranca:
+  pode_fazer_sozinho:
+    - "Ler arquivos"
+    - "Criar planilhas/PDFs"
+    - "Analisar relatórios"
+    - "Gerar rascunhos"
+    - "Atualizar dashboard"
+    - "Salvar logs e memória"
+    - "Criar scripts em teste"
+  
+  precisa_de_aprovacao:
+    - "Enviar mensagem/e-mail oficial"
+    - "Alterar WinGestor"
+    - "Alterar preços"
+    - "Apagar arquivos"
+    - "Publicar em redes sociais"
+    - "Usar API paga acima do limite"
+    - "Aplicar produção"
+  
+  nunca_deve_fazer_sozinho:
+    - "Pagamentos"
+    - "Exclusão permanente"
+    - "Mudanças fiscais oficiais"
+    - "Demissão/contratação automática"
+    - "Envio massivo sem revisão"
+    - "Alteração contábil final"

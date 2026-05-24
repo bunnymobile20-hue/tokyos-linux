@@ -176,19 +176,32 @@ AutomaticLogin = tokyos
 WaylandEnable = true
 GDMEOF
 
-    # Cria o arquivo de customização do GDM
-    mkdir -p "$ROOTFS_DIR/etc/gdm3/greeter.dconf-defaults"
-    cat > "$ROOTFS_DIR/etc/gdm3/greeter.dconf-defaults/00-tokyos" << 'DCONF'
-[org/gnome/desktop/background]
-picture-uri=''
-picture-options='none'
-primary-color='#0f172a'
-secondary-color='#0f172a'
-
-[org/gnome/desktop/screensaver]
-picture-uri=''
-primary-color='#0f172a'
-DCONF
+    # Configura GDM (alternate file path)
+    cat > "$ROOTFS_DIR/etc/gdm3/monitor.xml" << 'GDMEOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<monitors version="2">
+  <configuration>
+    <logicalmonitor>
+      <x>0</x>
+      <y>0</y>
+      <scale>1</scale>
+      <primary>yes</primary>
+      <monitor>
+        <monitorspec>
+          <connector>eDP-1</connector>
+          <vendor>unknown</vendor>
+          <product>unknown</product>
+        </monitorspec>
+        <mode>
+          <width>1920</width>
+          <height>1080</height>
+          <rate>60</rate>
+        </mode>
+      </monitor>
+    </logicalmonitor>
+  </configuration>
+</monitors>
+GDMEOF
 
     # Habilita systemd services (symlinks diretos — systemctl em chroot falha sem dbus)
     mkdir -p "$ROOTFS_DIR/etc/systemd/system/multi-user.target.wants"

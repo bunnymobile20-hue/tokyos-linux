@@ -411,43 +411,37 @@ bundle_apps() {
     BACKEND_SRC="$PROJECT_DIR/../backend"
     BACKEND_DST="$ROOTFS_DIR/opt/tokyos/backend"
     FRONTEND_SRC="$PROJECT_DIR/../frontend"
-    FRONTEND_DST="$ROOTFS_DIR/opt/tokyos/frontend"
+    FRONTEND_DST="$ROOTFS_DIR/opt/tokyos/frontend/dist"
 
     # --- Backend ---
     log "Copiando backend TokyOS..."
 
-    if [ -d "$BACKEND_SRC/dist" ]; then
+    if [ -d "$BACKEND_SRC" ]; then
         mkdir -p "$BACKEND_DST"
         cp -a "$BACKEND_SRC/package.json" "$BACKEND_DST/" 2>/dev/null || true
         cp -a "$BACKEND_SRC/dist" "$BACKEND_DST/" 2>/dev/null || true
-        cp -a "$BACKEND_SRC/node_modules" "$BACKEND_DST/" 2>/dev/null || true
+        cp -aL "$BACKEND_SRC/node_modules" "$BACKEND_DST/" 2>/dev/null || true
         log "  Backend copiado ($(du -sh "$BACKEND_DST" | cut -f1))"
     else
-        warn "  Backend não encontrado em $BACKEND_SRC (compile com tsc primeiro)"
+        warn "  Backend nao encontrado em $BACKEND_SRC"
     fi
 
     # --- Frontend ---
     log "Copiando frontend TokyOS..."
 
     if [ -d "$FRONTEND_SRC" ]; then
-        # Builda o frontend (produção)
         log "  Buildando frontend (npm run build)..."
-        (cd "$FRONTEND_SRC" && npm run build 2>&1) || warn "  Frontend build falhou, tentando copiar dist/ existente..."
+        (cd "$FRONTEND_SRC" && npm run build 2>&1) || warn "  Frontend build falhou"
 
         if [ -d "$FRONTEND_SRC/dist" ]; then
             mkdir -p "$FRONTEND_DST"
             cp -a "$FRONTEND_SRC/dist/." "$FRONTEND_DST/"
             log "  Frontend copiado ($(du -sh "$FRONTEND_DST" | cut -f1))"
-
-            # Backend espera frontend em ../../frontend/dist (relativo a dist/server.js)
-            # Cria symlink no local esperado
-            mkdir -p "$(dirname "$BACKEND_DST/../../frontend")"
-            ln -sfn "$FRONTEND_DST" "$BACKEND_DST/../../frontend/dist"
         else
-            warn "  Frontend dist/ não encontrado. Kiosk vai precisar de servidor externo."
+            warn "  Frontend dist/ nao encontrado"
         fi
     else
-        warn "  Frontend não encontrado em $FRONTEND_SRC"
+        warn "  Frontend nao encontrado em $FRONTEND_SRC"
     fi
 }
 

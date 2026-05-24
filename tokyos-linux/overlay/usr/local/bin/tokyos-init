@@ -1,5 +1,5 @@
 #!/bin/sh
-# tokios-init — PID 1 do TokiOS Linux
+# tokyos-init — PID 1 do TokyOS Linux
 # Sistema minimalista kiosk: boot → backend → chromium tela cheia
 
 set -e
@@ -8,8 +8,8 @@ PATH=/usr/local/bin:/usr/bin:/bin
 export PATH
 
 PROGNAME="$(basename "$0")"
-LOGFILE=/run/tokios/bootstrap.log
-CONFIG_DIR=/etc/tokios
+LOGFILE=/run/tokyos/bootstrap.log
+CONFIG_DIR=/etc/tokyos
 DATA_DIR=/mnt/data
 
 log() {
@@ -19,7 +19,7 @@ log() {
 
 die() {
     log "FATAL: $*"
-    echo "$*" > /run/tokios/fatal
+    echo "$*" > /run/tokyos/fatal
     # Reinicia em loop com backoff
     sleep 10
     reboot -f
@@ -29,7 +29,7 @@ die() {
 # FASE 0 — Preparação inicial
 # ============================================================
 setup_early() {
-    mkdir -p /run/tokios /run/network
+    mkdir -p /run/tokyos /run/network
 
     # Monta sistema de arquivos essenciais
     mount -t proc none /proc 2>/dev/null || true
@@ -52,7 +52,7 @@ setup_data() {
     DATA_DEV=""
     for dev in /dev/sd* /dev/nvme* /dev/mmcblk*; do
         label=$(blkid -s LABEL -o value "$dev" 2>/dev/null || echo "")
-        if [ "$label" = "TOKIOS-DATA" ]; then
+        if [ "$label" = "TOKYOS-DATA" ]; then
             DATA_DEV="$dev"
             break
         fi
@@ -65,19 +65,19 @@ setup_data() {
         }
         log "Fase 1: DATA montada de $DATA_DEV"
     else
-        log "Fase 1: nenhuma partição TOKIOS-DATA encontrada, usando tmpfs"
+        log "Fase 1: nenhuma partição TOKYOS-DATA encontrada, usando tmpfs"
         mount -t tmpfs -o size=512M tmpfs "$DATA_DIR"
     fi
 
     # Cria diretórios persistentes
-    mkdir -p "$DATA_DIR"/{var/{log,lib,tmp},etc/tokios,opt/tokios/data,root}
+    mkdir -p "$DATA_DIR"/{var/{log,lib,tmp},etc/tokyos,opt/tokyos/data,root}
 
     # Symlinks para persistência
     ln -sfn "$DATA_DIR/var/log" /var/log
     ln -sfn "$DATA_DIR/var/lib" /var/lib
     ln -sfn "$DATA_DIR/var/tmp" /var/tmp
-    ln -sfn "$DATA_DIR/etc/tokios" /etc/tokios
-    ln -sfn "$DATA_DIR/opt/tokios/data" /opt/tokios/data
+    ln -sfn "$DATA_DIR/etc/tokyos" /etc/tokyos
+    ln -sfn "$DATA_DIR/opt/tokyos/data" /opt/tokyos/data
     ln -sfn "$DATA_DIR/root" /root
 }
 
@@ -109,10 +109,9 @@ setup_network() {
 # FASE 3 — Gera/renova AUTHTOKEN
 # ============================================================
 setup_auth() {
-    TOKEN_FILE="$DATA_DIR/opt/tokios/AUTHTOKEN"
+    TOKEN_FILE="$DATA_DIR/opt/tokyos/AUTHTOKEN"
     if [ ! -f "$TOKEN_FILE" ]; then
-        # Gera token SHA256 baseado em hash de hardware + data
-        MACHINE_ID=$(cat /etc/machine-id 2>/dev/null || echo "tokios-$(uname -n)-$(date +%Y%m)")
+        MACHINE_ID=$(cat /etc/machine-id 2>/dev/null || echo "tokyos-$(uname -n)-$(date +%Y%m)")
         echo -n "$MACHINE_ID" | sha256sum | cut -d' ' -f1 > "$TOKEN_FILE"
         chmod 600 "$TOKEN_FILE"
         log "AUTHTOKEN gerado"
@@ -122,12 +121,30 @@ setup_auth() {
 }
 
 # ============================================================
-# FASE 4 — Sobe backend Node.js
+# FASE 4 — Som (PipeWire + WirePlumber)
+# ============================================================
+setup_sound() {
+    log "Fase 4: iniciando som..."
+
+    if command -v pipewire >/dev/null 2>&1; then
+        pipewire >> "$DATA_DIR/var/log/pipewire.log" 2>&1 &
+        sleep 1
+        wireplumber >> "$DATA_DIR/var/log/wireplumber.log" 2>&1 &
+        sleep 1
+        pipewire-pulse >> "$DATA_DIR/var/log/pipewire-pulse.log" 2>&1 &
+        log "Som: PipeWire + WirePlumber iniciados"
+    else
+        log "Som: PipeWire não encontrado"
+    fi
+}
+
+# ============================================================
+# FASE 5 — Sobe backend Node.js
 # ============================================================
 start_backend() {
     log "Fase 4: iniciando backend TokiOS..."
 
-    BACKEND_DIR=/opt/tokios/backend
+    BACKEND_DIR=/opt/tokyos/backend
     BACKEND_LOG="$DATA_DIR/var/log/backend.log"
 
     if [ ! -d "$BACKEND_DIR" ]; then
@@ -145,7 +162,7 @@ start_backend() {
     if [ -f dist/server.js ]; then
         node dist/server.js >> "$BACKEND_LOG" 2>&1 &
         BACKEND_PID=$!
-        echo "$BACKEND_PID" > /run/tokios/backend.pid
+        echo "$BACKEND_PID" > /run/tokyos/backend.pid
         log "Backend iniciado (PID $BACKEND_PID)"
 
         # Aguarda backend ficar pronto
@@ -163,7 +180,7 @@ start_backend() {
 }
 
 # ============================================================
-# FASE 5 — Sobe kiosk (Chromium tela cheia, Wayland ou X11)
+# FASE 6 — Sobe kiosk (Chromium tela cheia, Wayland ou X11)
 # ============================================================
 start_kiosk() {
     log "Fase 5: iniciando kiosk..."
@@ -178,20 +195,34 @@ start_kiosk() {
         /usr/local/bin/tokios-kiosk start >> "$DATA_DIR/var/log/kiosk.log" 2>&1
         log "Kiosk iniciado via tokios-kiosk"
     else
-        log "AVISO: tokios-kiosk não encontrado"
+        log "AVISO: tokyos-kiosk não encontrado"
     fi
 }
 
 # ============================================================
-# FASE 6 — Monitoramento / watchdog
+# FASE 7 — Rustdesk (acesso remoto)
+# ============================================================
+start_rustdesk() {
+    log "Fase 7: iniciando Rustdesk..."
+
+    if command -v rustdesk >/dev/null 2>&1; then
+        rustdesk >> "$DATA_DIR/var/log/rustdesk.log" 2>&1 &
+        log "Rustdesk iniciado"
+    else
+        log "Rustdesk não encontrado, pulando"
+    fi
+}
+
+# ============================================================
+# FASE 8 — Monitoramento / watchdog
 # ============================================================
 watchdog_loop() {
     log "Fase 6: watchdog iniciado"
 
     while true; do
         # Verifica backend
-        if [ -f /run/tokios/backend.pid ]; then
-            BPID=$(cat /run/tokios/backend.pid)
+        if [ -f /run/tokyos/backend.pid ]; then
+            BPID=$(cat /run/tokyos/backend.pid)
             if ! kill -0 "$BPID" 2>/dev/null; then
                 log "Backend morreu (PID $BPID), reiniciando..."
                 start_backend
@@ -199,8 +230,8 @@ watchdog_loop() {
         fi
 
         # Verifica kiosk
-        if [ -f /run/tokios/kiosk.pid ]; then
-            KPID=$(cat /run/tokios/kiosk.pid)
+        if [ -f /run/tokyos/kiosk.pid ]; then
+            KPID=$(cat /run/tokyos/kiosk.pid)
             if ! kill -0 "$KPID" 2>/dev/null; then
                 log "Kiosk morreu (PID $KPID), reiniciando..."
                 start_kiosk
@@ -217,11 +248,11 @@ watchdog_loop() {
 shutdown_handler() {
     log "Sinal recebido, desligando..."
 
-    if [ -f /run/tokios/backend.pid ]; then
-        kill $(cat /run/tokios/backend.pid) 2>/dev/null || true
+    if [ -f /run/tokyos/backend.pid ]; then
+        kill $(cat /run/tokyos/backend.pid) 2>/dev/null || true
     fi
-    if [ -f /run/tokios/kiosk.pid ]; then
-        kill $(cat /run/tokios/kiosk.pid) 2>/dev/null || true
+    if [ -f /run/tokyos/kiosk.pid ]; then
+        kill $(cat /run/tokyos/kiosk.pid) 2>/dev/null || true
     fi
 
     umount -a -r 2>/dev/null || true
@@ -235,12 +266,13 @@ setup_early
 setup_data
 setup_network
 setup_auth
+setup_sound || true
 start_backend || true
 start_kiosk || true
+start_rustdesk || true
 
-log "=== TokiOS Linux boot completo ==="
+log "=== TokyOS Linux boot completo ==="
 
-# Trap signals for clean shutdown
 trap shutdown_handler INT TERM QUIT
 
 watchdog_loop

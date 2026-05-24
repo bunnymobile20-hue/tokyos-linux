@@ -1,4 +1,4 @@
-# /etc/fstab — TokiOS Linux
+# /etc/fstab — TokyOS Linux
 # Sistema de arquivos montado pelo init, este é apenas fallback
 proc            /proc           proc    defaults        0 0
 sysfs           /sys            sysfs   defaults        0 0

@@ -122,14 +122,59 @@ install_packages() {
         xserver-xorg-core xserver-xorg xinit x11-xserver-utils \
         xfonts-base xfonts-utils
 
+    # NVIDIA drivers (proprietarios)
+    chroot "$ROOTFS_DIR" apt-get install -y -qq \
+        nvidia-driver firmware-misc-nonfree nvidia-settings \
+        || log "AVISO: NVIDIA driver pode falhar se kernel nao bater"
+
+    # Som: PipeWire + ALSA
+    chroot "$ROOTFS_DIR" apt-get install -y -qq \
+        pipewire pipewire-pulse pipewire-alsa wireplumber \
+        alsa-utils pavucontrol
+
     # Chromium para kiosk
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         chromium chromium-l10n
+
+    # Rustdesk (remoto/assistencia)
+    chroot "$ROOTFS_DIR" bash -c \
+        "curl -sL https://github.com/rustdesk/rustdesk/releases/download/1.3.8/rustdesk-1.3.8-x86_64.deb -o /tmp/rustdesk.deb && \
+         dpkg -i /tmp/rustdesk.deb 2>/dev/null || apt-get install -y -f -qq" \
+        || log "AVISO: Rustdesk falhou ao instalar"
 
     # Node.js v20 (via NodeSource)
     chroot "$ROOTFS_DIR" bash -c \
         "curl -fsSL https://deb.nodesource.com/setup_20.x | bash -"
     chroot "$ROOTFS_DIR" apt-get install -y -qq nodejs
+
+    # Google Antigravity — IDE (via APT repo)
+    chroot "$ROOTFS_DIR" bash -c \
+        "mkdir -p /etc/apt/keyrings && \
+         curl -fsSL https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg | \
+         gpg --dearmor -o /etc/apt/keyrings/antigravity-repo-key.gpg && \
+         echo 'deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main' > /etc/apt/sources.list.d/antigravity.list && \
+         apt-get update -qq && \
+         apt-get install -y -qq antigravity" \
+        || log "AVISO: Google Antigravity IDE falhou ao instalar via APT"
+
+    # Google Antigravity — CLI
+    chroot "$ROOTFS_DIR" bash -c \
+        "curl -fsSL https://antigravity.google/cli/install.sh | bash" \
+        || log "AVISO: Antigravity CLI falhou ao instalar"
+
+    # Google Antigravity — 2.0 Desktop App (tarball)
+    chroot "$ROOTFS_DIR" bash -c \
+        "mkdir -p /opt/antigravity-2.0 && \
+         ANTIGRAVITY_URL=\$(curl -sL https://antigravity.google/download/linux | grep -oP 'https://[^\"]+\\.tar\\.gz' | head -1) && \
+         if [ -n \"\$ANTIGRAVITY_URL\" ]; then \
+           curl -sL \"\$ANTIGRAVITY_URL\" -o /tmp/antigravity-2.0.tar.gz && \
+           tar xzf /tmp/antigravity-2.0.tar.gz -C /opt/antigravity-2.0 --strip-components=1 && \
+           ln -sf /opt/antigravity-2.0/antigravity /usr/local/bin/antigravity-2.0 && \
+           rm -f /tmp/antigravity-2.0.tar.gz; \
+         else \
+           echo 'AVISO: Antigravity 2.0 tarball URL nao encontrada'; \
+         fi" \
+        || log "AVISO: Antigravity 2.0 tarball falhou ao baixar/extrair"
 
     # Python
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
@@ -166,9 +211,9 @@ apply_overlay() {
 
     # Configura hostname
     echo "tokyos" > "$ROOTFS_DIR/etc/hostname"
-    echo "127.0.1.1 tokios" >> "$ROOTFS_DIR/etc/hosts"
+    echo "127.0.1.1 tokyos" >> "$ROOTFS_DIR/etc/hosts"
 
-    # Cria usuário tokios (opcional, para serviços que precisam de user)
+    # Cria usuário tokyos (opcional, para serviços que precisam de user)
     chroot "$ROOTFS_DIR" useradd -m -s /bin/bash tokios 2>/dev/null || true
 }
 

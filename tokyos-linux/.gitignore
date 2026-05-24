@@ -1,0 +1,5 @@
+build/work/
+tokyos-runtime/
+tokyos-runtime.squashfs
+tokyos-linux.iso
+*.log

@@ -719,7 +719,7 @@ export default function ReaderApp() {
         <div className="absolute inset-0 z-[170] flex items-center justify-center bg-slate-900/20 backdrop-blur-sm" onClick={() => setDeleteFeedId(null)}>
           <div className="w-[420px] rounded-3xl border border-white/70 bg-white/95 p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <h3 className="text-lg font-bold text-slate-800">Excluir feed</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Excluir apenas ClawOS Configuração de assinatura dentro，Os artigos que foram postados no banco de dados de informações local não serão excluídos.。</p>
+            <p className="mt-2 text-sm leading-6 text-slate-500">Excluir apenas a configuração de assinatura do TokyOS. Os artigos salvos no banco de dados local não serão excluídos.</p>
             <div className="mt-6 flex justify-end gap-3">
               <button type="button" onClick={() => setDeleteFeedId(null)} className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100">Cancelar</button>
               <button type="button" onClick={() => void handleDeleteFeed()} className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700">Confirmar exclusão</button>

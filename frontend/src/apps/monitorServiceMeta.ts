@@ -117,7 +117,7 @@ export function getServiceActionSuggestion(service: MonitorServiceItem) {
 
   switch (service.id) {
     case 'clawos':
-      return 'Recomenda-se confirmar primeiro ClawOS A interface da interface principal está acessível?，Reinicie se necessário clawos Servir。'
+      return 'Verifique se o TokyOS Portal está acessível. Reinicie o serviço se necessário.'
     case 'openclaw':
       return 'Recomenda-se verificar primeiro OpenClaw O gateway pode ser aberto?，Decida se deseja reiniciar AI Serviço de gateway。'
     case 'filebrowser':

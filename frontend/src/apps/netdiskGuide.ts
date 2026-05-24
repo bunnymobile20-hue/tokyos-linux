@@ -38,7 +38,7 @@ export function getNetdiskGuideData(brand: NetdiskBrand): NetdiskGuideData {
       `Preencha o caminho de montagem“${targetPath}”。`,
       `${title} obrigatório Cookie Ou pressione o botão de informações de autorização AList Solicitar preenchimento。`,
       'Não se preocupe com as opções avançadas ainda，Basta salvá-lo com sucesso。',
-      'voltar para ClawOS Clique“terminei，Teste novamente”。'
+      'voltar para o TokyOS. Clique em "Terminei, testar novamente".'
     ],
     cookieGuide: {
       recommended: [
@@ -64,7 +64,7 @@ export function getNetdiskGuideData(brand: NetdiskBrand): NetdiskGuideData {
       not_mounted: `ilustrar ${title} O armazenamento ainda não foi vinculado com êxito ${targetPath}。Verificação de prioridade“tipo de armazenamento”e“Caminho de montagem”Você preencheu corretamente?。`,
       auth_failed: 'AList Falha no login automático em segundo plano。Confirme primeiro AList O serviço está em execução，Em seguida, confirme se a senha do administrador em segundo plano ainda é o valor padrão exibido na página atual.。',
       auth_expired: 'AList O status de login expirou。Abra novamente o fundo de montagem subjacente，Depois de confirmar que você pode fazer login normalmente，Volte um pouco mais“Teste novamente”。',
-      alist_unreachable: 'ClawOS Não é possível conectar no momento AList Servir。Verifique primeiro AList Se o serviço foi iniciado，assim como 5244 A porta está escutando normalmente?。',
+      alist_unreachable: 'TokyOS não consegue conectar ao servidor AList no momento. Verifique se o serviço AList está rodando na porta 5244.',
       alist_error: 'AList retornou um erro。Priorize a verificação se as informações de autorização expiraram、Cookie Está completo?，E se o caminho de montagem é consistente com os requisitos atuais da página。'
     }
   }

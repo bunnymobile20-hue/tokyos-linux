@@ -57,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
           textAlign: 'center',
         }}>
           <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#ff6b6b' }}>
-            ClawOS - Application Error
+            TokyOS - Application Error
           </h1>
           <p style={{ fontSize: '0.95rem', marginBottom: '0.5rem', opacity: 0.8 }}>
             {this.state.error?.message || 'An unexpected error occurred'}

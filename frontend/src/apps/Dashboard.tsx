@@ -289,7 +289,7 @@ export default function Dashboard() {
           <div className="flex items-end mt-2">
             <span className="text-3xl font-light text-emerald-700">{formatUptime(stats.uptime)}</span>
           </div>
-          <p className="text-xs text-slate-500 mt-4">ClawOS O serviço de back-end está em execução continuamente há</p>
+          <p className="text-xs text-slate-500 mt-4">TokyOS está rodando continuamente há</p>
         </div>
 
         {/* Speedtest Card */}

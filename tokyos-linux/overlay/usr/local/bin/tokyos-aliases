@@ -1,0 +1,64 @@
+#!/bin/bash
+# Aliases TokyOS / Tokyo IA
+# Compatíveis com comandos legados — não quebra nada existente
+
+# TokyOS aliases
+tokyos-status() {
+  echo "=== TokyOS System Status ==="
+  echo "Uptime: $(uptime -p)"
+  echo ""
+  echo "--- Backend ---"
+  tokyos-backend status 2>/dev/null || echo "backend: parado"
+  echo ""
+  echo "--- Disco ---"
+  df -h / /mnt/data 2>/dev/null | grep -v ^Filesystem
+}
+
+tokyos-start() {
+  echo "Iniciando serviços TokyOS..."
+  systemctl start tokyos-backend.service 2>/dev/null && echo "  backend: OK" || echo "  backend: falhou"
+  tokyos-kiosk start 2>/dev/null && echo "  kiosk: OK" || echo "  kiosk: ignorado"
+}
+
+tokyos-stop() {
+  echo "Parando serviços TokyOS..."
+  systemctl stop tokyos-backend.service 2>/dev/null && echo "  backend: OK" || echo "  backend: falhou"
+  tokyos-kiosk stop 2>/dev/null || true
+}
+
+tokyos-restart() {
+  tokyos-stop
+  sleep 1
+  tokyos-start
+}
+
+tokyos-logs() {
+  local service="${1:-backend}"
+  case "$service" in
+    backend) tail -f /var/log/backend.log 2>/dev/null || echo "Log backend não encontrado" ;;
+    kiosk)   tail -f /var/log/kiosk.log 2>/dev/null || echo "Log kiosk não encontrado" ;;
+    system)  journalctl -xe -n 50 2>/dev/null || echo "journalctl não disponível" ;;
+    *)       echo "Uso: tokyos-logs {backend|kiosk|system}" ;;
+  esac
+}
+
+tokyoia-status() {
+  echo "=== Tokyo IA Status ==="
+  local url="${DASHBOARD_URL:-http://127.0.0.1:3001}"
+  if curl -s -o /dev/null -w "%{http_code}" "$url/api/system/hermes/status" 2>/dev/null | grep -q 200; then
+    echo "  Hermes Agent: Online"
+  else
+    echo "  Hermes Agent: Offline"
+  fi
+  echo "  Para mais detalhes, abra o TokyOS Portal em: $url"
+}
+
+# Se chamado diretamente, executa o comando
+case "$(basename "$0")" in
+  tokyos-status)  tokyos-status ;;
+  tokyos-start)   tokyos-start ;;
+  tokyos-stop)    tokyos-stop ;;
+  tokyos-restart) tokyos-restart ;;
+  tokyos-logs)    tokyos-logs "$@" ;;
+  tokyoia-status) tokyoia-status ;;
+esac

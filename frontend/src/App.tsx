@@ -588,20 +588,22 @@ function App() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className={`absolute inset-0 z-10 p-8 pt-16 pb-32 flex flex-col flex-wrap gap-6 content-start overflow-x-auto ${showWidgets ? 'pr-[660px]' : ''}`}
+            className={`absolute inset-0 z-10 p-8 pt-16 pb-32 ${!activeApp && showWidgets ? 'pr-[700px]' : 'pr-8'}`}
           >
-            {DESKTOP_APPS.map(app => (
-              <div 
-                key={app.id} 
-                onClick={() => setActiveApp(app.id)}
-                className="flex flex-col items-center justify-center w-24 h-28 rounded-xl hover:bg-white/20 hover:backdrop-blur-md transition-all cursor-pointer group active:scale-95"
-              >
-                <div className="w-16 h-16 rounded-2xl bg-white/40 backdrop-blur-lg border border-white/50 shadow-xl flex items-center justify-center group-hover:shadow-2xl group-hover:-translate-y-1 transition-all">
-                  <app.icon className={`w-8 h-8 ${app.color} drop-shadow-sm`} />
+            <div className="grid grid-cols-[repeat(auto-fill,96px)] gap-6 justify-start">
+              {DESKTOP_APPS.map(app => (
+                <div 
+                  key={app.id} 
+                  onClick={() => setActiveApp(app.id)}
+                  className="flex flex-col items-center justify-center w-24 h-28 rounded-xl hover:bg-white/20 hover:backdrop-blur-md transition-all cursor-pointer group active:scale-95"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-white/40 backdrop-blur-lg border border-white/50 shadow-xl flex items-center justify-center group-hover:shadow-2xl group-hover:-translate-y-1 transition-all">
+                    <app.icon className={`w-8 h-8 ${app.color} drop-shadow-sm`} />
+                  </div>
+                  <span className="mt-2 text-xs font-medium text-slate-800 bg-white/40 px-3 py-1 rounded-full backdrop-blur-md border border-white/20 shadow-sm text-center w-full truncate">{app.name}</span>
                 </div>
-                <span className="mt-2 text-xs font-medium text-slate-800 bg-white/40 px-3 py-1 rounded-full backdrop-blur-md border border-white/20 shadow-sm">{app.name}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -619,7 +621,7 @@ function App() {
           right: 0,
           top: 32,
           bottom: 0,
-          width: showWidgets ? 640 : 0,
+          width: showWidgets ? `${Math.min(640, window.innerWidth - 320)}px` : '0px',
           zIndex: 20
         }}
       >

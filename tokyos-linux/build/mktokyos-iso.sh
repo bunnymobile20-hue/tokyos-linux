@@ -126,11 +126,6 @@ install_packages() {
         xserver-xorg-core xserver-xorg xinit x11-xserver-utils \
         xfonts-base xfonts-utils
 
-    # NVIDIA drivers (proprietarios)
-    chroot "$ROOTFS_DIR" apt-get install -y -qq \
-        nvidia-driver firmware-misc-nonfree nvidia-settings \
-        || log "AVISO: NVIDIA driver pode falhar se kernel nao bater"
-
     # Som: PipeWire + ALSA
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         pipewire pipewire-pulse pipewire-alsa wireplumber \
@@ -184,6 +179,12 @@ install_packages() {
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         python3 python3-pip python3-venv
 
+    # NVIDIA drivers (tentativa — pode falhar em chroot sem /proc)
+    chroot "$ROOTFS_DIR" bash -c \
+        "apt-get install -y -qq nvidia-driver firmware-misc-nonfree nvidia-settings 2>/dev/null; \
+         apt-get install -y -f -qq" \
+        || log "AVISO: NVIDIA driver nao instalado (chroot sem /proc)"
+
     # Limpeza
     chroot "$ROOTFS_DIR" apt-get clean
     rm -rf "$ROOTFS_DIR/var/lib/apt/lists"/*
@@ -218,7 +219,7 @@ apply_overlay() {
     echo "127.0.1.1 tokyos" >> "$ROOTFS_DIR/etc/hosts"
 
     # Cria usuário tokyos (opcional, para serviços que precisam de user)
-    chroot "$ROOTFS_DIR" useradd -m -s /bin/bash tokios 2>/dev/null || true
+    chroot "$ROOTFS_DIR" useradd -m -s /bin/bash tokyos 2>/dev/null || true
 }
 
 # ============================================================

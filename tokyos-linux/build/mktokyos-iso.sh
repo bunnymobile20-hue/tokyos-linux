@@ -1,13 +1,10 @@
 #!/bin/bash
-# mkiso.sh — Build do TokyOS Linux ISO
-# Cria um sistema Linux minimalista com boot kiosk direto no dashboard
+# mktokyos-iso.sh — Build do TokyOS Linux ISO
+# Debian + GNOME Desktop + TokyOS como aplicativo
 #
-# Uso: sudo ./mkiso.sh [--clean] [--dev]
+# Uso: sudo ./mktokyos-iso.sh [--clean] [--dev]
 #   --clean  limpa artefatos anteriores
 #   --dev    modo desenvolvimento (pula compressão final, mais rápido)
-#
-# Dependências: debootstrap, squashfs-tools, xorriso, grub-pc-bin,
-#               grub-efi-amd64-bin, grub-efi-amd64-signed, mtools
 
 set -euo pipefail
 
@@ -23,7 +20,6 @@ VERSION="1.0.0-dev"
 ARCH="amd64"
 DEBIAN_SUITE="bookworm"
 
-# Cores para output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -44,9 +40,6 @@ for arg in "$@"; do
     esac
 done
 
-# ============================================================
-# Verificação de dependências
-# ============================================================
 check_deps() {
     local deps=(
         debootstrap chroot mksquashfs xorriso grub-mkrescue
@@ -61,22 +54,16 @@ check_deps() {
     done
 
     if [ ${#missing[@]} -gt 0 ]; then
-        die "Dependências faltando: ${missing[*]}. Instale com: sudo apt install debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin mtools"
+        die "Dependências faltando: ${missing[*]}"
     fi
 }
 
-# ============================================================
-# Limpeza
-# ============================================================
 clean_all() {
     log "Limpando artefatos anteriores..."
     rm -rf "$BUILD_DIR"
     rm -f "$OUTPUT_ISO"
 }
 
-# ============================================================
-# Cria rootfs base com debootstrap
-# ============================================================
 bootstrap_rootfs() {
     log "Criando rootfs base (Debian $DEBIAN_SUITE $ARCH)..."
 
@@ -91,21 +78,15 @@ bootstrap_rootfs() {
     fi
 }
 
-# ============================================================
-# Instala pacotes no chroot
-# ============================================================
 install_packages() {
     log "Instalando pacotes no chroot..."
 
-    # Habilita repositorios non-free + non-free-firmware
     sed -i 's/main$/main contrib non-free non-free-firmware/' \
         "$ROOTFS_DIR/etc/apt/sources.list" 2>/dev/null || true
 
-    # Configura apt para evitar dialogos interativos
     cat > "$ROOTFS_DIR/etc/apt/apt.conf.d/99tokyos" << 'APTCONF'
-APT::Install-Recommends "false";
+APT::Install-Recommends "true";
 APT::Get::Assume-Yes "true";
-APT::Get::force-yes "true";
 DPkg::Options {"--force-confold";"--force-confdef"};
 DPkg::Lock::Timeout "120";
 Quiet "2";
@@ -113,44 +94,42 @@ APTCONF
 
     chroot "$ROOTFS_DIR" apt-get update -qq
 
-    # Kernel e firmware (com fallback)
+    # Kernel + firmware
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
-        linux-image-amd64 firmware-linux-free \
+        linux-image-amd64 firmware-linux-free firmware-linux-nonfree \
         || true
-    chroot "$ROOTFS_DIR" apt-get install -y -qq \
-        firmware-linux-nonfree \
-        || log "AVISO: firmware-linux-nonfree indisponivel"
 
     # Live boot
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
-        live-boot live-boot-initramfs-tools
+        live-boot live-boot-initramfs-tools overlayroot
 
-    # Ferramentas de sistema
+    # GNOME Desktop completo
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
-        busybox squashfs-tools util-linux e2fsprogs dosfstools \
-        curl wget git unzip xz-utils bzip2 isc-dhcp-client
+        task-gnome-desktop gdm3 gnome-shell gnome-terminal \
+        nautilus gnome-control-center gnome-tweaks \
+        adwaita-icon-theme fonts-noto fonts-noto-cjk \
+        network-manager-gnome
 
-    # Wayland + display
-    chroot "$ROOTFS_DIR" apt-get install -y -qq \
-        weston libgl1-mesa-dri mesa-utils
-
-    # X11 (fallback)
-    chroot "$ROOTFS_DIR" apt-get install -y -qq \
-        xserver-xorg-core xserver-xorg xinit x11-xserver-utils \
-        xfonts-base xfonts-utils
-
-    # Som: PipeWire + ALSA
+    # PipeWire (substitui PulseAudio no GNOME)
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         pipewire pipewire-pulse pipewire-alsa wireplumber \
         alsa-utils pavucontrol
 
-    # Chromium
+    # Chromium (navegador padrão)
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
         chromium chromium-l10n
 
-    # Python (antes do Node pra isolar batch APT)
+    # Ferramentas
     chroot "$ROOTFS_DIR" apt-get install -y -qq \
-        python3 python3-pip python3-venv
+        curl wget git unzip xz-utils bzip2 \
+        squashfs-tools e2fsprogs dosfstools \
+        busybox python3 python3-pip python3-venv
+
+    # Node.js v20
+    chroot "$ROOTFS_DIR" bash -c \
+        "curl -fsSL https://deb.nodesource.com/setup_20.x | bash -" \
+        || log "AVISO: NodeSource falhou"
+    chroot "$ROOTFS_DIR" apt-get install -y -qq nodejs || true
 
     # Rustdesk
     chroot "$ROOTFS_DIR" bash -c \
@@ -158,260 +137,76 @@ APTCONF
          dpkg -i /tmp/rustdesk.deb 2>/dev/null || apt-get install -y -f -qq" \
         || log "AVISO: Rustdesk falhou"
 
-    # Node.js v20
-    chroot "$ROOTFS_DIR" bash -c \
-        "curl -fsSL https://deb.nodesource.com/setup_20.x | bash -" \
-        || log "AVISO: NodeSource setup falhou"
-    chroot "$ROOTFS_DIR" apt-get install -y -qq nodejs
-
-    # Google Antigravity — IDE
-    chroot "$ROOTFS_DIR" bash -c \
-        "mkdir -p /etc/apt/keyrings && \
-         curl -fsSL https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg 2>/dev/null | \
-         gpg --dearmor -o /etc/apt/keyrings/antigravity-repo-key.gpg 2>/dev/null && \
-         echo 'deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main' > /etc/apt/sources.list.d/antigravity.list && \
-         apt-get update -qq 2>/dev/null && \
-         apt-get install -y -qq antigravity 2>/dev/null" \
-        || log "AVISO: Antigravity IDE falhou"
-
-    # Google Antigravity — CLI
-    chroot "$ROOTFS_DIR" bash -c \
-        "curl -fsSL https://antigravity.google/cli/install.sh 2>/dev/null | bash 2>/dev/null" \
-        || log "AVISO: Antigravity CLI falhou"
-
-    # Google Antigravity — 2.0 tarball
-    chroot "$ROOTFS_DIR" bash -c \
-        "mkdir -p /opt/antigravity-2.0 && \
-         URL=\$(curl -sL https://antigravity.google/download/linux 2>/dev/null | grep -oP 'https://[^\"]+\\.tar\\.gz' | head -1) && \
-         if [ -n \"\$URL\" ]; then \
-           curl -sL \"\$URL\" -o /tmp/ag2.tar.gz 2>/dev/null && \
-           tar xzf /tmp/ag2.tar.gz -C /opt/antigravity-2.0 --strip-components=1 && \
-           ln -sf /opt/antigravity-2.0/antigravity /usr/local/bin/antigravity-2.0 && \
-           rm -f /tmp/ag2.tar.gz; \
-         fi" \
-        || log "AVISO: Antigravity 2.0 tarball falhou"
-
-    # Fix broken no final
     chroot "$ROOTFS_DIR" apt-get install -y -f -qq || true
-
-    # Limpeza
     chroot "$ROOTFS_DIR" apt-get clean || true
     rm -rf "$ROOTFS_DIR/var/lib/apt/lists"/*
 }
 
-# ============================================================
-# Aplica overlay TokyOS
-# ============================================================
 apply_overlay() {
     log "Aplicando overlay TokyOS..."
 
-    # Copia overlay para rootfs
     cp -a "$OVERLAY_DIR/." "$ROOTFS_DIR/"
+    chmod +x "$ROOTFS_DIR/usr/local/bin/tokyos-"* 2>/dev/null || true
 
-    # Torna scripts executáveis
-    chmod +x "$ROOTFS_DIR/usr/local/bin/tokyos-"*
-
-    # Cria diretórios necessários
     mkdir -p "$ROOTFS_DIR/opt/tokyos/backend"
     mkdir -p "$ROOTFS_DIR/opt/tokyos/data"
     mkdir -p "$ROOTFS_DIR/mnt/data"
 
-    # Gera locale
+    # Locale
     echo "pt_BR.UTF-8 UTF-8" > "$ROOTFS_DIR/etc/locale.gen"
     echo "en_US.UTF-8 UTF-8" >> "$ROOTFS_DIR/etc/locale.gen"
     chroot "$ROOTFS_DIR" locale-gen
-
     echo "LANG=pt_BR.UTF-8" > "$ROOTFS_DIR/etc/default/locale"
 
-    # Configura hostname
+    # Hostname
     echo "tokyos" > "$ROOTFS_DIR/etc/hostname"
     echo "127.0.1.1 tokyos" >> "$ROOTFS_DIR/etc/hosts"
 
-    # Cria usuário tokyos (opcional, para serviços que precisam de user)
+    # Usuário padrão
     chroot "$ROOTFS_DIR" useradd -m -s /bin/bash tokyos 2>/dev/null || true
+    echo "tokyos:tokyos" | chroot "$ROOTFS_DIR" chpasswd 2>/dev/null || true
+    chroot "$ROOTFS_DIR" usermod -aG sudo,adm,audio,video,input tokyos 2>/dev/null || true
+
+    # Auto-login no GDM para o usuário tokyos
+    mkdir -p "$ROOTFS_DIR/etc/gdm3"
+    cat > "$ROOTFS_DIR/etc/gdm3/daemon.conf" << 'GDMEOF'
+[daemon]
+AutomaticLoginEnable = true
+AutomaticLogin = tokyos
+WaylandEnable = true
+GDMEOF
+
+    # Cria o arquivo de customização do GDM
+    mkdir -p "$ROOTFS_DIR/etc/gdm3/greeter.dconf-defaults"
+    cat > "$ROOTFS_DIR/etc/gdm3/greeter.dconf-defaults/00-tokyos" << 'DCONF'
+[org/gnome/desktop/background]
+picture-uri=''
+picture-options='none'
+primary-color='#0f172a'
+secondary-color='#0f172a'
+
+[org/gnome/desktop/screensaver]
+picture-uri=''
+primary-color='#0f172a'
+DCONF
+
+    # Habilita systemd services (symlinks diretos — systemctl em chroot falha sem dbus)
+    mkdir -p "$ROOTFS_DIR/etc/systemd/system/multi-user.target.wants"
+    mkdir -p "$ROOTFS_DIR/etc/systemd/system/sysinit.target.wants"
+    ln -sf /etc/systemd/system/tokyos-backend.service \
+        "$ROOTFS_DIR/etc/systemd/system/multi-user.target.wants/"
+    ln -sf /etc/systemd/system/tokyos-firstboot.service \
+        "$ROOTFS_DIR/etc/systemd/system/sysinit.target.wants/"
+    ln -sf /lib/systemd/system/NetworkManager.service \
+        "$ROOTFS_DIR/etc/systemd/system/multi-user.target.wants/" 2>/dev/null || true
 }
 
-# ============================================================
-# Configura initramfs personalizado
-# ============================================================
-setup_initramfs() {
-    log "Configurando initramfs..."
-
-    # Cria hook de initramfs para montar squashfs
-    mkdir -p "$ROOTFS_DIR/etc/initramfs-tools/scripts/init-bottom"
-
-    cat > "$ROOTFS_DIR/etc/initramfs-tools/scripts/init-bottom/tokyos-mount" << 'INITEOF'
-#!/bin/sh
-# Hook initramfs: monta squashfs e overlay persistente
-
-PREREQ=""
-prereqs() { echo "$PREREQ"; }
-case "$1" in prereqs) prereqs; exit 0;; esac
-
-. /scripts/functions
-
-log_begin_msg "TokyOS: montando sistema..."
-
-# Cria diretórios de montagem
-mkdir -p /root /run/rootfs /mnt/data 2>/dev/null
-
-# Procura squashfs na raiz do dispositivo de boot
-ROOT_DEV=$(find /dev -name "sd*" -o -name "nvme*" -o -name "mmcblk*" 2>/dev/null | head -1)
-SQUASHFS_PATH=""
-
-# Tenta vários lugares para o squashfs
-for candidate in "/run/squashfs/tokyos-root.squashfs" \
-                  "/tokyos-root.squashfs" \
-                  "/dev/disk/by-label/TOKYOS-SYS"; do
-    if [ -f "$candidate" ]; then
-        SQUASHFS_PATH="$candidate"
-        break
-    fi
-done
-
-# Se for partição raw com label, monta e acha squashfs
-if [ -b "$ROOT_DEV" ]; then
-    LABEL=$(blkid -s LABEL -o value "$ROOT_DEV" 2>/dev/null || echo "")
-    if [ "$LABEL" = "TOKYOS-SYS-A" ] || [ "$LABEL" = "TOKYOS-SYS-B" ]; then
-        mount -r "$ROOT_DEV" /run/rootfs
-        if [ -f "/run/rootfs/tokyos-root.squashfs" ]; then
-            SQUASHFS_PATH="/run/rootfs/tokyos-root.squashfs"
-        fi
-    fi
-fi
-
-if [ -n "$SQUASHFS_PATH" ]; then
-    log_success_msg "TokyOS: squashfs encontrado em $SQUASHFS_PATH"
-    mount -t squashfs -o loop,ro "$SQUASHFS_PATH" /root
-else
-    log_warning_msg "TokyOS: squashfs não encontrado, boot pode falhar"
-fi
-
-log_end_msg
-INITEOF
-
-    chmod +x "$ROOTFS_DIR/etc/initramfs-tools/scripts/init-bottom/tokyos-mount"
-
-    # Configura init padrão para nosso tokyos-init
-    mkdir -p "$ROOTFS_DIR/etc/default"
-    echo "INIT=/usr/local/bin/tokyos-init" > "$ROOTFS_DIR/etc/default/tokyos"
-
-    # Reconstrói initramfs
-    chroot "$ROOTFS_DIR" update-initramfs -u -k all
-}
-
-# ============================================================
-# Cria squashfs do rootfs
-# ============================================================
-create_squashfs() {
-    log "Criando squashfs do rootfs..."
-
-    if [ "$DEV_MODE" = true ]; then
-        # Modo dev: sem compressão, mais rápido
-        mksquashfs "$ROOTFS_DIR" "$SQUASHFS_FILE" \
-            -comp gzip -b 128K -no-xattrs \
-            -e "var/cache/apt" "var/lib/apt" "usr/share/doc" \
-            "usr/share/man" "var/log"
-    else
-        # Modo produção: compressão máxima
-        mksquashfs "$ROOTFS_DIR" "$SQUASHFS_FILE" \
-            -comp xz -b 256K -no-xattrs \
-            -e "var/cache/apt" "var/lib/apt" "usr/share/doc" \
-            "usr/share/man" "var/log"
-    fi
-
-    log "Squashfs criado: $(du -sh "$SQUASHFS_FILE" | cut -f1)"
-}
-
-# ============================================================
-# Monta estrutura da ISO
-# ============================================================
-setup_iso() {
-    log "Montando estrutura ISO..."
-
-    mkdir -p "$ISO_DIR/boot/grub"
-    mkdir -p "$ISO_DIR/live"
-
-    # Copia kernel e initramfs
-    cp "$ROOTFS_DIR/boot/vmlinuz-"* "$ISO_DIR/boot/vmlinuz"
-    cp "$ROOTFS_DIR/boot/initrd.img-"* "$ISO_DIR/boot/initrd.img"
-
-    # Copia squashfs
-    cp "$SQUASHFS_FILE" "$ISO_DIR/live/tokyos-root.squashfs"
-
-    # GRUB config
-    cat > "$ISO_DIR/boot/grub/grub.cfg" << 'GRUBEOF'
-set default="0"
-set timeout=5
-
-loadfont=unicode
-insmod efi_gop
-insmod efi_uga
-insmod video_bochs
-insmod video_cirrus
-insmod all_video
-
-set gfxpayload=keep
-set gfxmode=auto
-
-menuentry "TokyOS Linux" {
-    linux /boot/vmlinuz boot=live findiso=/live/tokyos-root.squashfs
-          toram=yes
-          quiet
-          consoleblank=0
-    initrd /boot/initrd.img
-}
-
-menuentry "TokyOS Linux (modo seguro)" {
-    linux /boot/vmlinuz boot=live findiso=/live/tokyos-root.squashfs
-          toram=yes
-          nomodeset
-          quiet
-    initrd /boot/initrd.img
-}
-
-menuentry "TokyOS Linux (testar memória)" {
-    linux16 /boot/memtest86+.bin
-}
-GRUBEOF
-
-    # Loopback cfg pro GRUB encontrar squashfs
-    cat > "$ISO_DIR/boot/grub/loopback.cfg" << 'LOOPEOF'
-menuentry "TokyOS Linux" {
-    linux /boot/vmlinuz boot=live findiso=/live/tokyos-root.squashfs toram=yes quiet
-    initrd /boot/initrd.img
-}
-LOOPEOF
-}
-
-# ============================================================
-# Gera ISO bootável
-# ============================================================
-generate_iso() {
-    log "Gerando ISO bootável..."
-
-    # Cria diretório EFI para boot UEFI
-    mkdir -p "$ISO_DIR/EFI/BOOT"
-
-    grub-mkrescue -o "$OUTPUT_ISO" "$ISO_DIR" \
-        --locales="" \
-        --fonts="" \
-        --themes="" \
-        2>&1
-
-    log "ISO gerada: $OUTPUT_ISO ($(du -sh "$OUTPUT_ISO" | cut -f1))"
-}
-
-# ============================================================
-# Copia backend + frontend TokyOS para dentro da ISO
-# ============================================================
 bundle_apps() {
     BACKEND_SRC="$PROJECT_DIR/../backend"
     BACKEND_DST="$ROOTFS_DIR/opt/tokyos/backend"
     FRONTEND_SRC="$PROJECT_DIR/../frontend"
     FRONTEND_DST="$ROOTFS_DIR/opt/tokyos/frontend/dist"
 
-    # --- Backend ---
     log "Copiando backend TokyOS..."
 
     if [ -d "$BACKEND_SRC" ]; then
@@ -424,7 +219,6 @@ bundle_apps() {
         warn "  Backend nao encontrado em $BACKEND_SRC"
     fi
 
-    # --- Frontend ---
     log "Copiando frontend TokyOS..."
 
     if [ -d "$FRONTEND_SRC" ]; then
@@ -435,17 +229,93 @@ bundle_apps() {
             mkdir -p "$FRONTEND_DST"
             cp -a "$FRONTEND_SRC/dist/." "$FRONTEND_DST/"
             log "  Frontend copiado ($(du -sh "$FRONTEND_DST" | cut -f1))"
-        else
-            warn "  Frontend dist/ nao encontrado"
         fi
     else
         warn "  Frontend nao encontrado em $FRONTEND_SRC"
     fi
 }
 
-# ============================================================
-# MAIN
-# ============================================================
+setup_initramfs() {
+    log "Configurando initramfs..."
+    chroot "$ROOTFS_DIR" update-initramfs -u -k all 2>/dev/null || true
+}
+
+create_squashfs() {
+    log "Criando squashfs do rootfs..."
+
+    if [ "$DEV_MODE" = true ]; then
+        mksquashfs "$ROOTFS_DIR" "$SQUASHFS_FILE" \
+            -comp gzip -b 128K -no-xattrs \
+            -e "var/cache/apt" "var/lib/apt/lists" \
+            "usr/share/doc" "usr/share/man" "var/log"
+    else
+        mksquashfs "$ROOTFS_DIR" "$SQUASHFS_FILE" \
+            -comp xz -b 256K -no-xattrs \
+            -e "var/cache/apt" "var/lib/apt/lists" \
+            "usr/share/doc" "usr/share/man" "var/log"
+    fi
+
+    log "Squashfs criado: $(du -sh "$SQUASHFS_FILE" | cut -f1)"
+}
+
+setup_iso() {
+    log "Montando estrutura ISO..."
+
+    mkdir -p "$ISO_DIR/boot/grub"
+    mkdir -p "$ISO_DIR/live"
+
+    cp "$ROOTFS_DIR/boot/vmlinuz-"* "$ISO_DIR/boot/vmlinuz"
+    cp "$ROOTFS_DIR/boot/initrd.img-"* "$ISO_DIR/boot/initrd.img"
+    cp "$SQUASHFS_FILE" "$ISO_DIR/live/tokyos-root.squashfs"
+
+    cat > "$ISO_DIR/boot/grub/grub.cfg" << 'GRUBEOF'
+set default="0"
+set timeout=5
+
+insmod efi_gop
+insmod efi_uga
+insmod video_bochs
+insmod video_cirrus
+insmod all_video
+
+set gfxpayload=keep
+set gfxmode=auto
+
+menuentry "TokyOS Linux" {
+    linux /boot/vmlinuz boot=live findiso=/live/tokyos-root.squashfs
+          toram=yes quiet splash consoleblank=0
+    initrd /boot/initrd.img
+}
+
+menuentry "TokyOS Linux (modo seguro)" {
+    linux /boot/vmlinuz boot=live findiso=/live/tokyos-root.squashfs
+          toram=yes nomodeset quiet
+    initrd /boot/initrd.img
+}
+GRUBEOF
+
+    cat > "$ISO_DIR/boot/grub/loopback.cfg" << 'LOOPEOF'
+menuentry "TokyOS Linux" {
+    linux /boot/vmlinuz boot=live findiso=/live/tokyos-root.squashfs toram=yes quiet splash
+    initrd /boot/initrd.img
+}
+LOOPEOF
+}
+
+generate_iso() {
+    log "Gerando ISO bootável..."
+
+    mkdir -p "$ISO_DIR/EFI/BOOT"
+
+    grub-mkrescue -o "$OUTPUT_ISO" "$ISO_DIR" \
+        --locales="" \
+        --fonts="" \
+        --themes="" \
+        2>&1
+
+    log "ISO gerada: $OUTPUT_ISO ($(du -sh "$OUTPUT_ISO" | cut -f1))"
+}
+
 main() {
     echo ""
     echo "=============================================="
@@ -453,7 +323,6 @@ main() {
     echo "=============================================="
     echo ""
 
-    # Verifica se é root
     if [ "$(id -u)" -ne 0 ]; then
         die "Este script precisa ser executado como root (sudo)"
     fi

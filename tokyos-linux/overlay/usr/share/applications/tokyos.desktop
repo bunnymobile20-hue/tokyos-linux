@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=TokyOS Dashboard
+Comment=Acessar o painel TokyOS
+Exec=/opt/tokyos/scripts/open-dashboard.sh
+Icon=/opt/tokyos/frontend/dist/favicon.svg
+Terminal=false
+Categories=Network;WebBrowser;
+StartupNotify=true

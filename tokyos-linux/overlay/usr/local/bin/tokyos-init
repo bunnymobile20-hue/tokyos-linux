@@ -1,6 +1,7 @@
 #!/bin/sh
-# tokyos-init — PID 1 do TokyOS Linux
-# Sistema minimalista kiosk: boot → backend → chromium tela cheia
+# tokyos-init — Configuração inicial do TokyOS Linux
+# Executa no primeiro boot para preparar partição de dados e tokens
+# Instalado como tokyos-firstboot.service (one-shot)
 
 set -e
 
@@ -8,58 +9,23 @@ PATH=/usr/local/bin:/usr/bin:/bin
 export PATH
 
 PROGNAME="$(basename "$0")"
-LOGFILE=/run/tokyos/bootstrap.log
+LOGFILE=/var/log/tokyos-firstboot.log
 CONFIG_DIR=/etc/tokyos
 DATA_DIR=/mnt/data
 
 log() {
-    echo "[$(date +%H:%M:%S)] $PROGNAME: $*" >&2
-    echo "[$(date +%H:%M:%S)] $PROGNAME: $*" >> "$LOGFILE"
-}
-
-# Reaper de zumbis (PID 1 precisa coletar SIGCHLD)
-reap_zombies() {
-    while true; do
-        wait 2>/dev/null
-        break
-    done
-}
-trap 'reap_zombies' CHLD
-
-die() {
-    log "FATAL: $*"
-    echo "$*" > /run/tokyos/fatal
-    # Reinicia em loop com backoff
-    sleep 10
-    reboot -f
+    echo "[$(date +%H:%M:%S)] $PROGNAME: $*" | tee -a "$LOGFILE"
 }
 
 # ============================================================
-# FASE 0 — Preparação inicial
-# ============================================================
-setup_early() {
-    # Monta sistemas de arquivos PRIMEIRO
-    mount -t proc none /proc 2>/dev/null || true
-    mount -t sysfs none /sys 2>/dev/null || true
-    mount -t tmpfs none /run 2>/dev/null || true
-
-    mount -t devtmpfs none /dev 2>/dev/null || true
-    mkdir -p /dev/pts
-    mount -t devpts none /dev/pts 2>/dev/null || true
-
-    # Só depois cria diretórios no tmpfs
-    mkdir -p /run/tokyos /run/network
-
-    log "Fase 0: sistemas de arquivos montados"
-}
-
-# ============================================================
-# FASE 1 — Monta partição de dados persistente
+# Prepara partição de dados persistente
 # ============================================================
 setup_data() {
-    # Procura partição DATA por label
+    log "Preparando partição de dados..."
+
     DATA_DEV=""
     for dev in /dev/sd* /dev/nvme* /dev/mmcblk*; do
+        [ -b "$dev" ] || continue
         label=$(blkid -s LABEL -o value "$dev" 2>/dev/null || echo "")
         if [ "$label" = "TOKYOS-DATA" ]; then
             DATA_DEV="$dev"
@@ -68,54 +34,24 @@ setup_data() {
     done
 
     if [ -n "$DATA_DEV" ]; then
-        mount "$DATA_DEV" "$DATA_DIR" || {
-            log "AVISO: falha ao montar $DATA_DEV em $DATA_DIR, usando tmpfs"
-            mount -t tmpfs -o size=512M tmpfs "$DATA_DIR"
+        mount "$DATA_DEV" "$DATA_DIR" 2>/dev/null || {
+            log "AVISO: falha ao montar $DATA_DEV, formatando..."
+            mkfs.ext4 -L TOKYOS-DATA "$DATA_DEV"
+            mount "$DATA_DEV" "$DATA_DIR"
         }
-        log "Fase 1: DATA montada de $DATA_DEV"
+        log "Dados montados de $DATA_DEV"
     else
-        log "Fase 1: nenhuma partição TOKYOS-DATA encontrada, usando tmpfs"
+        log "Nenhuma partição TOKYOS-DATA encontrada. Dados em tmpfs."
         mount -t tmpfs -o size=512M tmpfs "$DATA_DIR"
     fi
 
-    # Cria diretórios persistentes
-    mkdir -p "$DATA_DIR"/{var/{log,lib,tmp},etc/tokyos,opt/tokyos/data,root}
-
-    # Symlinks para persistência
-    ln -sfn "$DATA_DIR/var/log" /var/log
-    ln -sfn "$DATA_DIR/var/lib" /var/lib
-    ln -sfn "$DATA_DIR/var/tmp" /var/tmp
-    ln -sfn "$DATA_DIR/etc/tokyos" /etc/tokyos
-    ln -sfn "$DATA_DIR/opt/tokyos/data" /opt/tokyos/data
-    ln -sfn "$DATA_DIR/root" /root
+    mkdir -p "$DATA_DIR"/{var/log,opt/tokyos/data,etc/tokyos}
+    ln -sfn "$DATA_DIR/var/log" /var/log 2>/dev/null || true
+    ln -sfn "$DATA_DIR/etc/tokyos" /etc/tokyos 2>/dev/null || true
 }
 
 # ============================================================
-# FASE 2 — Configuração de rede
-# ============================================================
-setup_network() {
-    log "Fase 2: iniciando rede..."
-
-    # Tenta dhcpcd primeiro
-    if command -v dhcpcd >/dev/null 2>&1; then
-        dhcpcd -q 2>/dev/null || dhcpcd 2>/dev/null &
-        sleep 3
-    fi
-
-    # Fallback: IP estático se configurado
-    if [ -f /etc/tokyos/network.conf ]; then
-        . /etc/tokyos/network.conf
-        if [ -n "$STATIC_IP" ]; then
-            ifconfig eth0 "$STATIC_IP" netmask "$NETMASK" up 2>/dev/null || true
-            route add default gw "$GATEWAY" 2>/dev/null || true
-        fi
-    fi
-
-    log "Rede configurada"
-}
-
-# ============================================================
-# FASE 3 — Gera/renova AUTHTOKEN
+# Gera AUTHTOKEN para API
 # ============================================================
 setup_auth() {
     TOKEN_FILE="$DATA_DIR/opt/tokyos/AUTHTOKEN"
@@ -130,158 +66,49 @@ setup_auth() {
 }
 
 # ============================================================
-# FASE 4 — Som (PipeWire + WirePlumber)
+# Configura tokyos.conf padrão
 # ============================================================
-setup_sound() {
-    log "Fase 4: iniciando som..."
-
-    if command -v pipewire >/dev/null 2>&1; then
-        pipewire >> "$DATA_DIR/var/log/pipewire.log" 2>&1 &
-        sleep 1
-        wireplumber >> "$DATA_DIR/var/log/wireplumber.log" 2>&1 &
-        sleep 1
-        pipewire-pulse >> "$DATA_DIR/var/log/pipewire-pulse.log" 2>&1 &
-        log "Som: PipeWire + WirePlumber iniciados"
-    else
-        log "Som: PipeWire não encontrado"
+setup_config() {
+    if [ ! -f "$CONFIG_DIR/tokyos.conf" ]; then
+        mkdir -p "$CONFIG_DIR"
+        cat > "$CONFIG_DIR/tokyos.conf" << 'CONFEOF'
+# TokyOS Config
+DASHBOARD_URL=http://127.0.0.1:3001
+DISPLAY_SERVER=auto
+UPDATE_CHANNEL=stable
+CONFEOF
+        log "tokyos.conf criado"
     fi
 }
 
 # ============================================================
-# FASE 5 — Sobe backend Node.js
+# Atualiza GRUB se estiver em disco (não live)
 # ============================================================
-start_backend() {
-    log "Fase 4: iniciando backend TokyOS..."
-
-    BACKEND_DIR=/opt/tokyos/backend
-    BACKEND_LOG="$DATA_DIR/var/log/backend.log"
-
-    if [ ! -d "$BACKEND_DIR" ]; then
-        log "AVISO: $BACKEND_DIR não encontrado, backend não iniciado"
-        return 1
+setup_grub() {
+    if [ -d /sys/firmware/efi ] && [ -f /boot/grub/grub.cfg ]; then
+        update-grub 2>/dev/null || true
+        log "GRUB atualizado"
     fi
-
-    cd "$BACKEND_DIR"
-    export NODE_ENV=production
-    export PORT=3001
-    export AUTHTOKEN
-
-    # Usa o Node.js para subir o servidor
-    # O backend já está pré-compilado (dist/) no squashfs
-    if [ -f dist/server.js ]; then
-        node dist/server.js >> "$BACKEND_LOG" 2>&1 &
-        BACKEND_PID=$!
-        echo "$BACKEND_PID" > /run/tokyos/backend.pid
-        log "Backend iniciado (PID $BACKEND_PID)"
-
-        # Aguarda backend ficar pronto
-        for i in $(seq 1 30); do
-            if curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:3001/api/system/hermes/status" 2>/dev/null | grep -q 200; then
-                log "Backend pronto após ${i}s"
-                return 0
-            fi
-            sleep 1
-        done
-        log "AVISO: backend não respondeu após 30s, continuando..."
-    else
-        log "AVISO: backend dist/server.js não encontrado"
-    fi
-}
-
-# ============================================================
-# FASE 6 — Sobe kiosk (Chromium tela cheia, Wayland ou X11)
-# ============================================================
-start_kiosk() {
-    log "Fase 5: iniciando kiosk..."
-
-    if ! command -v chromium >/dev/null 2>&1; then
-        log "AVISO: chromium não encontrado, pulando kiosk"
-        return 1
-    fi
-
-    # Delega para o script tokyos-kiosk (que faz auto-detect Wayland/X11)
-    if [ -f /usr/local/bin/tokyos-kiosk ]; then
-        /usr/local/bin/tokyos-kiosk start >> "$DATA_DIR/var/log/kiosk.log" 2>&1
-        log "Kiosk iniciado via tokyos-kiosk"
-    else
-        log "AVISO: tokyos-kiosk não encontrado"
-    fi
-}
-
-# ============================================================
-# FASE 7 — Rustdesk (acesso remoto)
-# ============================================================
-start_rustdesk() {
-    log "Fase 7: iniciando Rustdesk..."
-
-    if command -v rustdesk >/dev/null 2>&1; then
-        rustdesk >> "$DATA_DIR/var/log/rustdesk.log" 2>&1 &
-        log "Rustdesk iniciado"
-    else
-        log "Rustdesk não encontrado, pulando"
-    fi
-}
-
-# ============================================================
-# FASE 8 — Monitoramento / watchdog
-# ============================================================
-watchdog_loop() {
-    log "Fase 6: watchdog iniciado"
-
-    while true; do
-        # Verifica backend
-        if [ -f /run/tokyos/backend.pid ]; then
-            BPID=$(cat /run/tokyos/backend.pid)
-            if ! kill -0 "$BPID" 2>/dev/null; then
-                log "Backend morreu (PID $BPID), reiniciando..."
-                start_backend
-            fi
-        fi
-
-        # Verifica kiosk
-        if [ -f /run/tokyos/kiosk.pid ]; then
-            KPID=$(cat /run/tokyos/kiosk.pid)
-            if ! kill -0 "$KPID" 2>/dev/null; then
-                log "Kiosk morreu (PID $KPID), reiniciando..."
-                start_kiosk
-            fi
-        fi
-
-        sleep 10
-    done
-}
-
-# ============================================================
-# FASE 7 — Shutdown handler
-# ============================================================
-shutdown_handler() {
-    log "Sinal recebido, desligando..."
-
-    if [ -f /run/tokyos/backend.pid ]; then
-        kill $(cat /run/tokyos/backend.pid) 2>/dev/null || true
-    fi
-    if [ -f /run/tokyos/kiosk.pid ]; then
-        kill $(cat /run/tokyos/kiosk.pid) 2>/dev/null || true
-    fi
-
-    umount -a -r 2>/dev/null || true
-    poweroff -f
 }
 
 # ============================================================
 # MAIN
 # ============================================================
-setup_early
+log "=== TokyOS first-boot init ==="
+
 setup_data
-setup_network
 setup_auth
-setup_sound || true
-start_backend || true
-start_kiosk || true
-start_rustdesk || true
+setup_config
 
-log "=== TokyOS Linux boot completo ==="
+# Aplica config GNOME no primeiro boot
+if [ -f /opt/tokyos/scripts/setup-gnome.sh ]; then
+    /opt/tokyos/scripts/setup-gnome.sh
+    log "Configuração GNOME aplicada"
+fi
 
-trap shutdown_handler INT TERM QUIT
+# Só roda GRUB update se não for live CD
+if ! grep -q "boot=live" /proc/cmdline 2>/dev/null; then
+    setup_grub
+fi
 
-watchdog_loop
+log "=== TokyOS first-boot concluido ==="

@@ -1,0 +1,14 @@
+[Unit]
+Description=TokyOS First-Boot Setup
+Documentation=https://github.com/bunnymobile20-hue/tokyos-linux
+DefaultDependencies=no
+After=systemd-journald.service
+Before=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/tokyos-init
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target

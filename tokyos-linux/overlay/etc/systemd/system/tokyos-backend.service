@@ -1,0 +1,23 @@
+[Unit]
+Description=TokyOS Backend Server
+Documentation=https://github.com/bunnymobile20-hue/tokyos-linux
+After=network.target
+
+[Service]
+Type=simple
+User=tokyos
+WorkingDirectory=/opt/tokyos/backend
+ExecStart=/usr/bin/node /opt/tokyos/backend/dist/server.js
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=3001
+Environment=DATA_DIR=/mnt/data
+
+# Segurança
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

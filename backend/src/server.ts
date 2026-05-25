@@ -1069,6 +1069,25 @@ app.get('/clawos/api/system/openclaw/bootstrap', (_req, res) => {
   });
 });
 
+let pendingAppLaunch: string | null = null;
+
+app.post('/api/system/apps/launch', express.json(), (req, res) => {
+  const { app_id } = req.body || {};
+  const validApps = ['dashboard', 'monitor', 'files', 'downloads', 'notes', 'voice'];
+  if (!app_id || !validApps.includes(app_id)) {
+    return res.status(400).json({ success: false, error: `app_id inválido. Válidos: ${validApps.join(', ')}` });
+  }
+  logger.info(`[Apps] Lançando app: ${app_id}`);
+  pendingAppLaunch = app_id;
+  res.json({ success: true, data: { app_id, message: `App ${app_id} lançado` } });
+});
+
+app.get('/api/system/apps/pending-launch', (_req, res) => {
+  const app_id = pendingAppLaunch;
+  pendingAppLaunch = null;
+  res.json({ success: true, data: app_id ? { app_id } : null });
+});
+
 app.post('/api/system/netdisk/quark-auth/reset', async (_req, res) => {
   await clearQuarkAuthSession();
   res.json({ success: true });

@@ -1,0 +1,18 @@
+name: "Contas a pagar do dia"
+intent: create_task
+status: planned
+description: "Lista e organiza contas a pagar do dia"
+tools:
+  - tokyo_planner
+  - mem0
+steps:
+  - tool: tokyo_planner
+    action: create_task
+    params:
+      title: "Revisar contas a pagar"
+      due: "today"
+  - tool: mem0
+    action: add_memory
+    params:
+      content: "Contas a pagar revisadas"
+      context: "financeiro"

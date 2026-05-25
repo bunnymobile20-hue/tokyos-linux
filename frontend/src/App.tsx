@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Minus, Square, X, Settings } from 'lucide-react'
-import { DashboardIcon, MonitorIcon, FilesIcon, VideoIcon, LocalMusicIcon, DownloadsIcon, NotesIcon, ReaderIcon, QuarkIcon, NeteaseIcon, OpenClawIcon, OpenCodeIcon, DidaIcon } from './components/Icons'
-import NeteaseLogin from './components/NeteaseLogin'
-import DidaLogin from './components/DidaLogin'
+import { Minus, Square, X, Settings, Grid, Lock, Mic, Store } from 'lucide-react'
+import { DashboardIcon, MonitorIcon, FilesIcon, DownloadsIcon, NotesIcon } from './components/Icons'
 import LoginScreen from './components/LoginScreen'
 import ToastProvider from './components/ToastProvider'
 import NotificationCenter from './components/NotificationCenter'
@@ -11,44 +9,19 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Dashboard from './apps/Dashboard'
 import ServiceMonitor from './apps/Monitor'
 import IframeApp from './apps/IframeApp'
-import VideoApp from './apps/VideoApp'
-import MusicApp from './apps/MusicApp'
-import LocalMusicApp from './apps/LocalMusicApp'
 import DownloadApp from './apps/DownloadApp'
 import NotesApp from './apps/NotesApp'
-import AIQuantApp from "./apps/AIQuantApp"
-import AIQuantIcon from "./components/AIQuantIcon"
-import NetdiskApp from './apps/NetdiskApp'
-import ReaderApp from './apps/ReaderApp'
-import DidaApp from './apps/DidaApp'
-import ReversaApp from './apps/ReversaApp'
-import QueueMonitorApp from './apps/QueueMonitorApp'
-import ExecutionFlowApp from './apps/ExecutionFlowApp'
-import OpenCodeApp from './apps/OpenCodeApp'
-import AntigravityApp from './apps/AntigravityApp'
-import HermesAgentApp from './apps/HermesAgentApp'
-import FirecrawlApp from './apps/FirecrawlApp'
-import BunnyDreamsApp from './apps/BunnyDreamsApp'
-import AutoTesteApp from './apps/AutoTesteApp'
-import JarvisVoiceApp from './apps/JarvisVoiceApp'
-import MemoryApp from './apps/MemoryApp'
-import TokyoAIModelsApp from './apps/TokyoAIModelsApp'
-import PaperclipApp from './apps/PaperclipApp'
-import SystemStatusApp from './apps/SystemStatusApp'
-import MintIntegrationApp from './apps/MintIntegrationApp'
-import { Mic, Brain, Code, Bot, Network, Briefcase, Grid, Menu } from 'lucide-react'
+import DashboardExecutivo from './apps/DashboardExecutivo'
 import { withBasePath } from './lib/basePath'
-import { buildEmbeddedOpenClawIframeUrl, primeEmbeddedOpenClawStorage } from './lib/openclawStorage'
 import DesktopWidgets from './components/DesktopWidgets'
 import { fetchServerUiConfig, saveServerUiConfig } from './lib/serverUiConfig'
 import { useNotificationStore } from './store/useNotificationStore'
-import { NeuralVoiceWidget } from './components/NeuralVoiceWidget'
-import { AiBrowserApp } from './components/AiBrowserApp'
-import { Globe, DollarSign, Shield, Database, Users, List, Cpu, BookOpen, Activity, GitMerge } from 'lucide-react'
+import VoiceAssistantFloating from './components/VoiceAssistantFloating'
+import VoiceActivationScreen from './apps/VoiceActivationScreen'
 
-type AppId = 'aiquant' | 'dashboard' | 'monitor' | 'openclaw' | 'opencode' | 'files' | 'video' | 'music' | 'localmusic' | 'downloads' | 'notes' | 'quark' | 'reader' | 'dida' | 'aibrowser' | 'voice' | 'memory' | 'antigravity' | 'hermes' | 'firecrawl' | 'bunnydreams' | 'autoteste' | 'aicosts' | 'security' | 'wingestor' | 'virtual_employees' | 'audit_logs' | 'reversa' | 'queues' | 'execution_flow' | 'system-status' | 'mint-integration'
+type AppId = 'dashboard' | 'monitor' | 'files' | 'downloads' | 'notes' | 'voice' | 'dashboardexecutivo'
 
-type AppCategory = 'rpa' | 'ai_memory' | 'erp' | 'media' | 'system'
+type AppCategory = 'system'
 
 interface AppDef {
   id: AppId
@@ -59,52 +32,18 @@ interface AppDef {
 }
 
 const DESKTOP_APPS: AppDef[] = [
-  { id: 'bunnydreams', name: 'ERP Bunny Dreams', icon: Briefcase, color: 'text-pink-600', category: 'erp' },
-  { id: 'autoteste', name: 'AutoTeste Tokyo IA', icon: Activity, color: 'text-emerald-500', category: 'ai' },
-  { id: 'system-status', name: 'Status do Sistema', icon: DashboardIcon, color: 'text-blue-400', category: 'system' },
-  { id: 'mint-integration', name: 'Linux Mint Core', icon: Settings, color: 'text-gray-400', category: 'system' },
-  { id: 'execution_flow', name: 'Fluxo de Execução', icon: GitMerge, color: 'text-blue-500', category: 'ai_memory' },
-  { id: 'queues', name: 'Tarefas em Fila', icon: Activity, color: 'text-green-500', category: 'system' },
-  { id: 'reversa', name: 'Reversa Docs', icon: BookOpen, color: 'text-indigo-500', category: 'system' },
-  { id: 'voice', name: 'Voz da Tokyo', icon: Mic, color: 'text-purple-500', category: 'ai_memory' },
-  { id: 'memory', name: 'Memória Neural', icon: Brain, color: 'text-pink-500', category: 'ai_memory' },
-  { id: 'antigravity', name: 'Antigravity IDE', icon: Code, color: 'text-teal-400', category: 'ai_memory' },
-  { id: 'hermes', name: 'Hermes Agent RPA', icon: Bot, color: 'text-slate-400', category: 'rpa' },
-  { id: 'firecrawl', name: 'Firecrawl.dev', icon: Network, color: 'text-orange-500', category: 'rpa' },
-  { id: 'aibrowser', name: 'Navegador IA', icon: Globe, color: 'text-blue-500', category: 'rpa' },
-  { id: "aiquant", name: "AI Negociação de Ações", icon: AIQuantIcon, color: "", category: 'ai_memory' },
-  { id: 'virtual_employees', name: 'Funcionários Virtuais', icon: Users, color: 'text-indigo-400', category: 'ai_memory' }
+  { id: 'voice', name: 'Assistente de Voz', icon: Mic, color: 'text-purple-400', category: 'system' },
+  { id: 'dashboardexecutivo', name: 'Dashboard Executivo', icon: Store, color: 'text-pink-400', category: 'system' },
+  { id: 'dashboard', name: 'Status do Sistema', icon: DashboardIcon, color: 'text-blue-400', category: 'system' },
+  { id: 'monitor', name: 'Monitoramento', icon: MonitorIcon, color: 'text-green-400', category: 'system' },
+  { id: 'files', name: 'Arquivos', icon: FilesIcon, color: 'text-amber-400', category: 'system' },
+  { id: 'downloads', name: 'Downloads', icon: DownloadsIcon, color: 'text-purple-400', category: 'system' },
+  { id: 'notes', name: 'Notas', icon: NotesIcon, color: 'text-rose-400', category: 'system' },
 ]
 
-const UTILITY_APPS: AppDef[] = [
-  { id: 'dashboard', name: 'Status do Sistema', icon: DashboardIcon, color: '', category: 'system' },
-  { id: 'monitor', name: 'Monitoramento', icon: MonitorIcon, color: '', category: 'system' },
-  { id: 'openclaw', name: 'OpenClaw', icon: OpenClawIcon, color: '', category: 'rpa' },
-  { id: 'opencode', name: 'OpenCode', icon: OpenCodeIcon, color: '', category: 'system' },
-  { id: 'files', name: 'Arquivos', icon: FilesIcon, color: '', category: 'media' },
-  { id: 'video', name: 'Cinema e TV', icon: VideoIcon, color: '', category: 'media' },
-  { id: 'music', name: 'Música (NetEase)', icon: NeteaseIcon, color: '', category: 'media' },
-  { id: 'localmusic', name: 'Música Local', icon: LocalMusicIcon, color: '', category: 'media' },
-  { id: 'downloads', name: 'Downloads', icon: DownloadsIcon, color: '', category: 'media' },
-  { id: 'notes', name: 'Notas', icon: NotesIcon, color: '', category: 'erp' },
-  { id: 'dida', name: 'Tarefas (TickTick)', icon: DidaIcon, color: '', category: 'erp' },
-  { id: 'reader', name: 'Leitor Notícias', icon: ReaderIcon, color: '', category: 'media' },
-  { id: 'quark', name: 'Disco Nuvem', icon: QuarkIcon, color: '', category: 'media' },
-  { id: 'wingestor', name: 'Relatórios WinGestor', icon: Database, color: 'text-emerald-500', category: 'erp' },
-  { id: 'aicosts', name: 'Painel Tokyo IA', icon: Cpu, color: 'text-blue-400', category: 'system' },
-  { id: 'security', name: 'Permissões e Segurança', icon: Shield, color: 'text-red-500', category: 'system' },
-  { id: 'audit_logs', name: 'Auditoria & Logs', icon: List, color: 'text-slate-500', category: 'system' }
-]
+const UTILITY_APPS: AppDef[] = DESKTOP_APPS
 
-const APPS: AppDef[] = [...DESKTOP_APPS, ...UTILITY_APPS]
-
-const CATEGORY_NAMES: Record<AppCategory, string> = {
-  rpa: 'RPA & Automação',
-  ai_memory: 'IA & Memória',
-  erp: 'Gestão & Negócios',
-  media: 'Mídia & Arquivos',
-  system: 'Sistema e Utilitários'
-}
+const APPS: AppDef[] = DESKTOP_APPS
 
 const WALLPAPERS = [
   withBasePath('/wallpaper.svg'),
@@ -113,8 +52,10 @@ const WALLPAPERS = [
 ]
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [password, setPassword] = useState<string | null>(null)
+  const stored = localStorage.getItem('tokios-auth')
+  const initialSession = stored ? JSON.parse(stored) : null
+  const [isAuthenticated, setIsAuthenticated] = useState(!!initialSession)
+  const [password, setPassword] = useState<string | null>(initialSession?.password || null)
   const [loginError, setLoginError] = useState<string | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
   const [authFetchReady, setAuthFetchReady] = useState(false)
@@ -129,19 +70,6 @@ function App() {
       }, 300)
     }
   }, [])
-
-  const openClawGatewayUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}${withBasePath('/proxy/openclaw')}`
-  const [openClawIframeUrl, setOpenClawIframeUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!isAuthenticated) return
-    let cancelled = false
-    void primeEmbeddedOpenClawStorage(openClawGatewayUrl).then((token) => {
-      if (cancelled) return
-      setOpenClawIframeUrl(buildEmbeddedOpenClawIframeUrl(openClawGatewayUrl, token))
-    })
-    return () => { cancelled = true }
-  }, [isAuthenticated, openClawGatewayUrl])
 
   const [activeApp, setActiveApp] = useState<AppId | null>(null)
   const [lastActiveApp, setLastActiveApp] = useState<AppId | null>(null)
@@ -175,7 +103,21 @@ function App() {
     }
   }, [isAuthenticated, password])
 
-  const [settingsTab, setSettingsTab] = useState<'personal'|'download'|'account'|'env'|'about'>('personal')
+  useEffect(() => {
+    if (!isAuthenticated) return
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/system/apps/pending-launch')
+        const json = await res.json()
+        if (json.success && json.data?.app_id) {
+          setActiveApp(json.data.app_id)
+        }
+      } catch {}
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [isAuthenticated])
+
+  const [settingsTab, setSettingsTab] = useState<'personal'|'download'|'env'|'about'>('personal')
   const [dockSize, setDockSize] = useState(48)
   const [autoHideDock, setAutoHideDock] = useState(false)
   const [defaultFullscreen, setDefaultFullscreen] = useState(false)
@@ -184,7 +126,6 @@ function App() {
   const [showMiniDock, setShowMiniDock] = useState(true)
   const [dockHideDelay, setDockHideDelay] = useState(2)
   const [stickyNotifications, setStickyNotifications] = useState(false)
-  const [neteaseCookie, setNeteaseCookie] = useState('')
   const [uiConfigReady, setUiConfigReady] = useState(false)
   const setNotificationBehavior = useNotificationStore((state) => state.setBehavior)
   
@@ -320,34 +261,6 @@ function App() {
   }, [stickyNotifications, setNotificationBehavior])
 
   useEffect(() => {
-    if (!isAuthenticated) return
-    fetch('/api/system/music/settings/cookie')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && typeof data.data?.cookie === 'string') {
-          setNeteaseCookie(data.data.cookie)
-          localStorage.setItem('clawos-netease-cookie', data.data.cookie)
-        }
-      })
-      .catch(console.error)
-  }, [isAuthenticated])
-
-  useEffect(() => {
-    localStorage.setItem('clawos-netease-cookie', neteaseCookie)
-  }, [neteaseCookie])
-
-  const handleNeteaseCookieUpdate = (cookie: string) => {
-    setNeteaseCookie(cookie)
-    fetch('/api/system/music/settings/cookie', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cookie })
-    }).then(() => {
-      window.dispatchEvent(new Event('netease-cookie-updated'))
-    }).catch(console.error)
-  }
-
-  useEffect(() => {
     if (!autoHideDock) {
       setIsDockVisible(true)
       return
@@ -451,6 +364,7 @@ function App() {
         setPassword(inputPassword)
         setIsAuthenticated(true)
         setLoginError(null)
+        localStorage.setItem('tokios-auth', JSON.stringify({ password: inputPassword }))
       } else {
         setLoginError('Senha incorreta. Por favor, tente novamente.')
       }
@@ -469,41 +383,13 @@ function App() {
 
   const renderAppContent = (id: AppId) => {
     switch (id) {
-      case 'aibrowser': return <AiBrowserApp />
-      case 'voice': return <JarvisVoiceApp />
-      case 'memory': return <MemoryApp />
-      case 'execution_flow': return <ExecutionFlowApp />
-      case 'bunnydreams': return <BunnyDreamsApp />
-      case 'autoteste': return <AutoTesteApp />
-      case 'queues': return <QueueMonitorApp />
-      case 'system-status': return <SystemStatusApp />
-      case 'reversa': return <ReversaApp />
-      case 'antigravity': return <AntigravityApp />
-      case 'hermes': return <HermesAgentApp />
-      case 'firecrawl': return <FirecrawlApp />
-      case 'aiquant': return <AIQuantApp />
+      case 'dashboardexecutivo': return <DashboardExecutivo />
+      case 'voice': return <VoiceActivationScreen />
       case 'dashboard': return <Dashboard />
       case 'monitor': return <ServiceMonitor />
-      case 'openclaw':
-        return openClawIframeUrl
-          ? <IframeApp url={openClawIframeUrl} title="OpenClaw" />
-          : <div className="flex h-full items-center justify-center bg-slate-50 text-sm text-slate-500">Preparando OpenClaw conectar...</div>
-      case 'opencode': return <OpenCodeApp />
       case 'files': return <IframeApp url={withBasePath('/proxy/filebrowser/')} title="FileBrowser" />
-      case 'video': return <VideoApp />
-      case 'music': return <MusicApp isActive={activeApp === 'music'} />
-      case 'localmusic': return <LocalMusicApp />
       case 'downloads': return <DownloadApp />
       case 'notes': return <NotesApp />
-      case 'dida': return <DidaApp />
-      case 'reader': return <ReaderApp />
-      case 'quark': return <NetdiskApp brand="quark" />
-      case 'virtual_employees': return <PaperclipApp />
-      case 'wingestor': return <div className="flex h-full items-center justify-center bg-slate-950 text-slate-400">Gateway WinGestor (Em construção)</div>
-      case 'aicosts': return <TokyoAIModelsApp />
-      case 'security': return <div className="flex h-full items-center justify-center bg-slate-950 text-slate-400">Permissões e Segurança (Em construção)</div>
-      case 'audit_logs': return <div className="flex h-full items-center justify-center bg-slate-950 text-slate-400">Auditoria (Em construção)</div>
-      case 'mint-integration': return <MintIntegrationApp />
       default: return null
     }
   }
@@ -534,6 +420,13 @@ function App() {
             <Settings className="w-3.5 h-3.5 text-slate-700 drop-shadow-sm" />
           </div>
           <span className="font-bold text-slate-800 tracking-wide">TokyOS</span>
+          <div
+            onClick={() => { localStorage.removeItem('tokios-auth'); setIsAuthenticated(false); setPassword(null); }}
+            className="cursor-pointer hover:bg-white/40 p-1 rounded-md transition-colors ml-1"
+            title="Bloquear Tela"
+          >
+            <Lock className="w-3.5 h-3.5 text-slate-700 drop-shadow-sm" />
+          </div>
         </div>
         {showMiniDock && (
           <div className="absolute left-1/2 top-0 hidden h-full -translate-x-1/2 items-center md:flex">
@@ -641,7 +534,7 @@ function App() {
               <div className="w-48 bg-slate-50/50 border-r border-slate-200/50 flex flex-col p-6">
                 <h3 className="font-bold text-lg text-slate-800 mb-6">Configurações do sistema</h3>
                 <div className="space-y-1">
-                  {[ {id:"personal", label:"Personalização"}, {id:"download", label:"Downloads"}, {id:"account", label:"Autorização"}, {id:"env", label:"Ambiente & Chaves"}, {id:"about", label:"Sobre"} ].map(tab => (
+                  {[ {id:"personal", label:"Personalização"}, {id:"download", label:"Downloads"}, {id:"env", label:"Ambiente & Chaves"}, {id:"about", label:"Sobre"} ].map(tab => (
                     <div 
                       key={tab.id}
                       onClick={() => setSettingsTab(tab.id as any)}
@@ -801,14 +694,6 @@ function App() {
                         />
                         <p className="text-xs text-slate-500 mt-2">Esta configuração será aplicada globalmente ao caminho de download padrão para músicas e discos de rede. As modificações entram em vigor automaticamente.</p>
                       </div>
-                    </div>
-                  )}
-                  {settingsTab === "account" && (
-                    <div className="space-y-6 animate-in fade-in duration-300">
-                      <h4 className="text-lg font-bold text-slate-800 mb-6">Autorização de conta</h4>
-                      <NeteaseLogin currentCookie={neteaseCookie} onCookieUpdate={handleNeteaseCookieUpdate} />
-                      <div className="h-px bg-slate-200 my-4" />
-                      <DidaLogin />
                     </div>
                   )}
                   {settingsTab === "env" && (
@@ -1056,8 +941,7 @@ function App() {
         </div>
       )}
 
-      {/* Voice Assistant Widget */}
-      <NeuralVoiceWidget />
+      <VoiceAssistantFloating />
     </div>
   )
 }

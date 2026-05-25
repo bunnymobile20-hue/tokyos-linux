@@ -2,23 +2,17 @@ import asyncio
 import json
 import logging
 from browser_use import Agent, Browser
-from langchain_ollama import ChatOllama
+from browser_use.llm.ollama.chat import ChatOllama as OllamaBU
 import websockets
 
 logging.basicConfig(level=logging.INFO)
 
-# Use ChatOllama with 32000 context window! Default 2048 truncates the DOM.
-llm = ChatOllama(
-    model="qwen2.5-coder:32b",
-    temperature=0.0,
-    num_ctx=32000
+llm = OllamaBU(
+    model="qwen3:14b",
+    host="http://127.0.0.1:11434",
+    ollama_options={"num_ctx": 40000, "temperature": 0.0}
 )
 
-# Force properties to exist for browser-use if needed
-ChatOllama.provider = property(lambda self: "ollama")
-ChatOllama.model_name = property(lambda self: self.model)
-
-# Configure browser-use to be visible (headless=False)
 browser = Browser(headless=False)
 
 async def run_agent(task_instruction: str):
@@ -26,7 +20,11 @@ async def run_agent(task_instruction: str):
         task=task_instruction,
         llm=llm,
         browser=browser,
-        use_vision=False
+        use_vision=False,
+        max_failures=3,
+        max_steps=15,
+        llm_timeout=180,
+        max_clickable_elements_length=5000
     )
     result = await agent.run()
     return result

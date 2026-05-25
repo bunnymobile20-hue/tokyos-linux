@@ -1,0 +1,17 @@
+name: "Relatório diário de vendas"
+intent: extract_report
+status: planned
+description: "Extrai relatório de vendas do dia e salva na memória"
+tools:
+  - browser_agent
+  - mem0
+steps:
+  - tool: browser_agent
+    action: open_url
+    params:
+      url: "http://127.0.0.1:3001/apps/bunnydreams"
+  - tool: mem0
+    action: add_memory
+    params:
+      content: "Relatório diário de vendas processado"
+      context: "vendas"

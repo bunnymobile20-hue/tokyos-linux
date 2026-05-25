@@ -1,0 +1,180 @@
+tools:
+  - id: browser_agent
+    name: Navegador IA
+    role: "Abrir páginas e automatizar navegação"
+    status: active
+    command: chromium
+    risk_level: low
+    requires_approval: false
+    capabilities:
+      - open_url
+      - dry_run_browser
+      - get_status
+    input_schema:
+      type: object
+      properties:
+        url:
+          type: string
+          description: URL para abrir
+    output_schema:
+      type: object
+      properties:
+        status:
+          type: string
+
+  - id: playwright
+    name: Playwright
+    role: "Automação headless de navegador"
+    status: inactive
+    risk_level: high
+    requires_approval: true
+    capabilities:
+      - screenshot
+      - extract_html
+      - click
+      - fill_form
+    input_schema:
+      type: object
+      properties:
+        url:
+          type: string
+        actions:
+          type: array
+    output_schema:
+      type: object
+      properties:
+        screenshots:
+          type: array
+
+  - id: firecrawl
+    name: Firecrawl
+    role: "Extração de dados de URLs"
+    status: inactive
+    endpoint: http://127.0.0.1:3002
+    risk_level: low
+    requires_approval: false
+    capabilities:
+      - extract_url
+      - search_web
+      - dry_run_extract
+    input_schema:
+      type: object
+      properties:
+        url:
+          type: string
+    output_schema:
+      type: object
+      properties:
+        markdown:
+          type: string
+
+  - id: mem0
+    name: Memória (Mem0)
+    role: "Memória persistente do usuário"
+    status: active
+    risk_level: low
+    requires_approval: false
+    capabilities:
+      - add_memory
+      - search_memory
+      - recall_context
+    input_schema:
+      type: object
+      properties:
+        content:
+          type: string
+        user:
+          type: string
+    output_schema:
+      type: object
+      properties:
+        memory_id:
+          type: integer
+
+  - id: obsidian
+    name: Obsidian Vault
+    role: "Bloco de notas persistente"
+    status: planned
+    risk_level: low
+    requires_approval: false
+    capabilities:
+      - save_note
+      - read_note
+      - list_notes
+
+  - id: openclaw
+    name: OpenClaw Gateway
+    role: "Gateway de automação legado"
+    status: legacy
+    endpoint: http://127.0.0.1:8920
+    risk_level: high
+    requires_approval: true
+    capabilities:
+      - send_task
+      - get_status
+
+  - id: hermes
+    name: Hermes Agent
+    role: "Agente de raciocínio e RPA"
+    status: active
+    endpoint: http://127.0.0.1:3001/api
+    risk_level: medium
+    requires_approval: false
+    capabilities:
+      - reason
+      - execute_rpa
+      - get_status
+
+  - id: paperclip
+    name: Paperclip
+    role: "Funcionários virtuais e workflows"
+    status: active
+    risk_level: medium
+    requires_approval: false
+    capabilities:
+      - create_workflow
+      - run_workflow
+      - get_status
+
+  - id: tokyo_planner
+    name: Planejador Tokyo
+    role: "Criação e gerenciamento de tarefas"
+    status: active
+    risk_level: low
+    requires_approval: false
+    capabilities:
+      - create_task
+      - list_tasks
+      - run_workflow
+
+  - id: tokyos_portal
+    name: Portal TokyOS
+    role: "Interface principal do sistema"
+    status: active
+    endpoint: http://127.0.0.1:3001
+    risk_level: low
+    requires_approval: false
+    capabilities:
+      - show_dashboard
+      - navigate
+
+  - id: system_monitor
+    name: Monitor do Sistema
+    role: "Status de hardware e serviços"
+    status: active
+    risk_level: low
+    requires_approval: false
+    capabilities:
+      - get_services
+      - get_hardware
+      - check_health
+
+  - id: action_log
+    name: Registro de Ações
+    role: "Log estruturado de todas as ações"
+    status: active
+    risk_level: low
+    requires_approval: false
+    capabilities:
+      - log_action
+      - query_logs

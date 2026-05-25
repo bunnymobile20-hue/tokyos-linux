@@ -1,0 +1,16 @@
+name: "Checagem do sistema TokyOS"
+intent: check_system
+status: active
+description: "Verifica status do hardware, serviços e saúde do sistema"
+tools:
+  - system_monitor
+  - action_log
+steps:
+  - tool: system_monitor
+    action: check_health
+    params: {}
+  - tool: action_log
+    action: log_action
+    params:
+      action: "system_check"
+      result: "ok"
